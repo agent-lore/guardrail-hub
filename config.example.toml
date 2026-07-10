@@ -1,0 +1,42 @@
+# guardrail-hub registry — copy to $XDG_CONFIG_HOME/guardrail-hub/config.toml
+# (usually ~/.config/guardrail-hub/config.toml) and adjust paths for this
+# machine. A ./config.toml in the CWD (gitignored) overrides for development;
+# GUARDRAIL_HUB_CONFIG overrides everything.
+#
+# Env overrides: GUARDRAIL_HUB_HOST, GUARDRAIL_HUB_PORT, GUARDRAIL_HUB_LOG_LEVEL.
+
+log_level = "info"
+
+[server]
+host = "127.0.0.1"
+port = 8600
+
+[[repos]]
+name = "lithos"
+path = "~/tmp/tmp-diagram-uplift/lithos-dia"
+family = "lithos"
+
+[[repos]]
+name = "lithos-lens"
+path = "~/projects/lithos/code/lithos-lens"
+family = "lithos"
+
+[[repos]]
+name = "lithos-loom"
+path = "~/projects/lithos/code/lithos-loom"
+family = "lithos"
+
+[[repos]]
+name = "influx"
+path = "~/projects/lithos/code/influx"
+family = "lithos"
+
+[[repos]]
+name = "kc-agent"
+path = "~/tmp/tmp-diagram-uplift/kc-agent"
+family = "kindred"
+
+[[repos]]
+name = "kc-sim"
+path = "~/tmp/tmp-diagram-uplift/kc-sim"
+family = "kindred"
