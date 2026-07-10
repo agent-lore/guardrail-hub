@@ -99,10 +99,11 @@ def _owned_stores(component: str, arch: dict) -> list[dict]:
     """
     if not arch.get("containers", {}).get("stores"):
         return []
-    # The module only exists in repos with the containers adapter installed.
-    from tests.guardrail._containers import stores  # pyright: ignore[reportMissingImports]
+    # The module only exists in repos with the containers adapter installed
+    # (short import line so 88-width reflow can't strand the ignore comment).
+    from tests.guardrail import _containers  # pyright: ignore
 
-    return [st for st in stores() if st["owner"] == component]
+    return [st for st in _containers.stores() if st["owner"] == component]
 
 
 def render_component_page(
