@@ -118,6 +118,10 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 norecursedirs = ["kit"]
+# Repo root on sys.path so `from tests.conftest import ...` (and, once the kit
+# is dogfooded, `from tests.guardrail import ...`) resolves as a namespace
+# package regardless of pytest import-mode quirks.
+pythonpath = ["."]
 addopts = [
   "-ra",
   "--strict-config",
