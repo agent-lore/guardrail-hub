@@ -3,8 +3,7 @@
 The contracts live in ``pyproject.toml`` under ``[tool.importlinter]``:
 dependencies must only point downward (Entrypoints -> Core -> Foundation),
 expressed as ``forbidden`` contracts. This test simply runs ``lint-imports``
-and fails with its report if any contract is broken. The complementary
-``lithos.lcma`` seam is guarded by ``tests/test_module_boundaries.py``.
+and fails with its report if any contract is broken.
 """
 
 from __future__ import annotations

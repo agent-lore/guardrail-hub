@@ -76,4 +76,4 @@ Top 10 most complex functions:
 ## Domain & tests
 
 - Domain models: **8** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.79** (3345 test lines / 1871 source lines)
+- Test-to-source line ratio: **1.79** (3344 test lines / 1871 source lines)
