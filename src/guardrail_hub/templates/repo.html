@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{{ snapshot.entry.name }} — Guardrail Hub{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{{ snapshot.entry.family }}</p>
+  <h1>{{ snapshot.entry.name }}</h1>
+  <p class="muted">
+    {{ snapshot.entry.path }}
+    {% include "partials/status_badges.html" %}
+  </p>
+</section>
+
+{% if snapshot.status.error and not snapshot.has_metrics %}
+<div class="banner banner-warning">
+  <strong>Nothing to show.</strong>
+  <span>{{ snapshot.status.error }}</span>
+</div>
+{% endif %}
+
+{% if snapshot.budgets %}
+<section class="panel">
+  <h2>Budgets</h2>
+  {% include "partials/budget_table.html" %}
+</section>
+{% endif %}
+
+{% if snapshot.has_metrics %}
+<section class="panel">
+  <h2>Trends <span class="muted">({{ history_count }} committed snapshots on {{ snapshot.entry.default_branch }})</span></h2>
+  {% if history_count < 2 %}
+  <p class="muted">Not enough history for a chart yet — trends appear once
+    <code>docs/generated/metrics.json</code> has two or more commits on
+    {{ snapshot.entry.default_branch }}.</p>
+  {% endif %}
+  <div id="trend-charts" class="chart-grid"
+       data-history-url="/repos/{{ snapshot.entry.name }}/history.json"></div>
+</section>
+
+<section class="panel">
+  <h2>Components</h2>
+  <table class="data-table">
+    <thead>
+      <tr><th>Component</th><th>Tier</th><th class="num">Modules</th><th class="num">SLOC</th>
+          <th class="num">Fan-in</th><th class="num">Fan-out</th><th class="num">Instability</th>
+          <th class="num">Max cx</th></tr>
+    </thead>
+    <tbody>
+      {% for c in snapshot.components %}
+      <tr>
+        <td><a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ c.name }}.md">{{ c.name }}</a></td>
+        <td>{{ c.tier }}</td>
+        <td class="num">{{ c.modules }}</td>
+        <td class="num">{{ c.sloc }}</td>
+        <td class="num">{{ c.fan_in }}</td>
+        <td class="num">{{ c.fan_out }}</td>
+        <td class="num">{{ "%.2f" | format(c.instability) if c.instability is not none else "—" }}</td>
+        <td class="num">{{ c.max_complexity }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if snapshot.docs %}
+<section class="panel">
+  <h2>Generated docs</h2>
+  <ul class="doc-list">
+    {% for doc in snapshot.docs if not doc.startswith("components/") %}
+    <li><a href="/repos/{{ snapshot.entry.name }}/docs/{{ doc }}">{{ doc }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Kit drift</h2>
+  <p>
+    Installed kit: <strong>{{ drift.installed_version }}</strong>
+    (canonical {{ drift.kit_version }}) —
+    {% set findings = drift.files | rejectattr("status", "equalto", "same") | list %}
+    {% if not findings %}
+    <span class="traffic traffic-ok">clean</span>
+    {% else %}
+    <a href="/drift">{{ findings | length }} finding(s)</a>
+    {% endif %}
+  </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if history_count >= 2 %}
+<script src="{{ url_for('static', path='vendor/uplot.iife.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='hub.js') }}" defer></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Guardrail Hub — repos{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Architecture guardrails</p>
+  <h1>Repos</h1>
+</section>
+
+{% for family, snapshots in families.items() %}
+<section class="family family-{{ family }}">
+  <h2 class="family-title">{{ family }}</h2>
+  <div class="repo-grid">
+    {% for snapshot in snapshots %}
+    <a class="repo-card" href="/repos/{{ snapshot.entry.name }}">
+      <div class="repo-card-head">
+        <strong>{{ snapshot.entry.name }}</strong>
+        {% include "partials/status_badges.html" %}
+      </div>
+      {% if snapshot.has_metrics %}
+      <dl class="repo-stats">
+        <div><dt>SLOC</dt><dd>{{ extract(snapshot.metrics, "size.total_sloc") }}</dd></div>
+        <div><dt>Edges</dt><dd>{{ extract(snapshot.metrics, "graph.cross_component_edges") }}</dd></div>
+        <div><dt>Components</dt><dd>{{ snapshot.components | length }}</dd></div>
+        <div><dt>Test ratio</dt><dd>{{ "%.2f" | format(extract(snapshot.metrics, "tests.ratio")) }}</dd></div>
+      </dl>
+      <div class="repo-card-foot">
+        <span class="traffic traffic-{{ worst_level(snapshot) }}">budgets {{ worst_level(snapshot) }}</span>
+        <span class="muted">{{ snapshot.docs | length }} docs</span>
+      </div>
+      {% else %}
+      <p class="muted">No metrics snapshot — kit not applied or diagrams never generated.</p>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

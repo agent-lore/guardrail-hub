@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Kit drift — Guardrail Hub{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Canonical kit {{ kit_version }}</p>
+  <h1>Kit drift</h1>
+  <p class="muted">
+    Comparison is AST-normalized (formatting, comments, and docstrings ignored), so a
+    <span class="drift-chip drift-differs">differs</span> is a real logic delta —
+    usually <em>pending adoption of the canonical kit</em>, not a fault.
+    <span class="drift-chip drift-extra">extra</span> marks legitimate repo-local additions.
+  </p>
+</section>
+
+{% for report in reports %}
+<section class="panel">
+  <h2>{{ report.repo }}
+    <span class="muted">kit {{ report.installed_version }}</span>
+    {% set findings = report.files | rejectattr("status", "equalto", "same") | list %}
+    {% if not findings %}<span class="traffic traffic-ok">clean</span>{% endif %}
+  </h2>
+  {% set noteworthy = report.files | rejectattr("status", "equalto", "same") | list %}
+  {% if noteworthy %}
+  <table class="data-table">
+    <thead><tr><th>File</th><th>Role</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>
+      {% for f in noteworthy %}
+      <tr>
+        <td><code>{{ f.path }}</code></td>
+        <td>{{ f.role }}</td>
+        <td><span class="drift-chip drift-{{ f.status }}">{{ f.status }}</span></td>
+        <td class="muted">{{ f.detail }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">All {{ report.files | length }} kit files match the canon.</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

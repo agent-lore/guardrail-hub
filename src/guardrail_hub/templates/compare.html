@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Compare — Guardrail Hub{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Cross-repo</p>
+  <h1>Compare</h1>
+</section>
+
+<section class="panel">
+  <h2>Current values</h2>
+  <div class="scroll-x">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          {% for s in snapshots %}<th class="num">{{ s.entry.name }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for dotted, label, values in rows %}
+        <tr>
+          <td title="{{ dotted }}">{{ label }}</td>
+          {% for v in values %}
+          <td class="num">
+            {%- if v is none %}—
+            {%- elif v is number and v is not integer %}{{ "%.2f" | format(v) }}
+            {%- else %}{{ v }}
+            {%- endif -%}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">Absolute numbers — repos differ in size; the trend chart below is where
+    cross-repo comparison is honest.</p>
+</section>
+
+<section class="panel">
+  <h2>Trend across repos</h2>
+  <form method="get" action="/compare" class="metric-picker">
+    <label for="key">Metric</label>
+    <select name="key" id="key" onchange="this.form.submit()">
+      {% for k in trend_keys %}
+      <option value="{{ k }}" {{ "selected" if k == selected_key else "" }}>{{ k }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">Plot</button></noscript>
+  </form>
+  <div id="compare-chart" class="chart-panel"
+       data-compare-url="/compare/history.json?key={{ selected_key }}"></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='vendor/uplot.iife.min.js') }}" defer></script>
+<script src="{{ url_for('static', path='hub.js') }}" defer></script>
+{% endblock %}

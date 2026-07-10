@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ repo_name }}/{{ doc_path }} — Guardrail Hub{% endblock %}
+{% block content %}
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="/repos/{{ repo_name }}">{{ repo_name }}</a>
+  <span>/</span>
+  <span class="crumb-current">{{ doc_path }}</span>
+</nav>
+<article class="doc-body">
+  {{ body | safe }}
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if needs_mermaid %}
+<script src="{{ url_for('static', path='vendor/mermaid.min.js') }}"></script>
+<script>
+  // securityLevel "loose" keeps the diagram's `click … "components/X.md"`
+  // directives working; the docs URL space mirrors docs/generated/ so those
+  // relative links resolve naturally.
+  mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: "neutral" });
+  mermaid.run({ querySelector: "pre.mermaid" });
+</script>
+{% endif %}
+{% endblock %}

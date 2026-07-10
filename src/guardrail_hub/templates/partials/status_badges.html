@@ -1,0 +1,18 @@
+{% set status = snapshot.status %}
+<span class="badges">
+  {% if not status.present %}
+    <span class="badge badge-missing" title="{{ status.error }}">missing checkout</span>
+  {% elif not status.is_git %}
+    <span class="badge badge-missing">not a git repo</span>
+  {% else %}
+    {% if not status.on_default_branch %}
+      <span class="badge badge-branch" title="worktree is on {{ status.branch }}">on {{ status.branch }}</span>
+    {% endif %}
+    {% if status.dirty %}
+      <span class="badge badge-dirty" title="uncommitted changes in the worktree">dirty</span>
+    {% endif %}
+    {% if status.error %}
+      <span class="badge badge-missing" title="{{ status.error }}">{{ status.error }}</span>
+    {% endif %}
+  {% endif %}
+</span>

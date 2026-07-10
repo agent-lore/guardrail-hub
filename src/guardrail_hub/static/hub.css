@@ -1,0 +1,475 @@
+/* Guardrail Hub — lithos-lens family look: warm paper, serif, one accent. */
+
+:root {
+  --bg: #f7f3ea;
+  --ink: #1e2723;
+  --muted: #65716b;
+  --line: #ded6c7;
+  --panel: #fffaf0;
+  --panel-strong: #fff6e3;
+  --accent: #bd4f2b;
+  --ok: #356a4d;
+  --closed: #41576f;
+  --warning-bg: #fff0cf;
+  --warning-border: #d58a1f;
+  --breach: #a03123;
+  --family-lithos: #bd4f2b;
+  --family-kindred: #41576f;
+  --family-default: #65716b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(189, 79, 43, 0.14), transparent 28rem),
+    linear-gradient(135deg, #f7f3ea 0%, #efe8d8 100%);
+  color: var(--ink);
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+}
+
+a {
+  color: inherit;
+}
+
+code, pre {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+/* ── shell ─────────────────────────────────────────────────────────── */
+
+.shell-header {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.environment {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-left: 0.75rem;
+  text-transform: uppercase;
+}
+
+nav {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+nav a.active {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.refresh-form {
+  margin-left: 0.5rem;
+}
+
+.refresh-form button {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.refresh-form button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.shell-main {
+  margin: 0 auto;
+  max-width: 76rem;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.hero {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 0.95;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.banner {
+  border: 1px solid;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.banner-warning {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+
+.banner span {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* ── panels & tables ───────────────────────────────────────────────── */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.panel h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.75rem;
+}
+
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.data-table th,
+.data-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.data-table td.num,
+.data-table th.num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.scroll-x {
+  overflow-x: auto;
+}
+
+/* ── repo cards ────────────────────────────────────────────────────── */
+
+.family-title {
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  margin: 1.5rem 0 0.75rem;
+  text-transform: uppercase;
+}
+
+.repo-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+}
+
+.repo-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--family-default);
+  border-radius: 1rem;
+  display: block;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.family-lithos .repo-card {
+  border-left-color: var(--family-lithos);
+}
+
+.family-kindred .repo-card {
+  border-left-color: var(--family-kindred);
+}
+
+.repo-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.repo-card-head {
+  align-items: baseline;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.repo-card-head strong {
+  font-size: 1.1rem;
+}
+
+.repo-stats {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 0.9rem 0;
+}
+
+.repo-stats dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.repo-stats dd {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin: 0;
+}
+
+.repo-card-foot {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── badges & traffic lights ───────────────────────────────────────── */
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge {
+  border-radius: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  text-transform: uppercase;
+}
+
+.badge-dirty {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: #7a5410;
+}
+
+.badge-branch {
+  background: #e8edf3;
+  border: 1px solid var(--closed);
+  color: var(--closed);
+}
+
+.badge-missing {
+  background: #f7e2de;
+  border: 1px solid var(--breach);
+  color: var(--breach);
+}
+
+.traffic {
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.traffic-ok {
+  background: #e2efe6;
+  color: var(--ok);
+}
+
+.traffic-tight {
+  background: var(--warning-bg);
+  color: #7a5410;
+}
+
+.traffic-breach {
+  background: #f7e2de;
+  color: var(--breach);
+}
+
+.traffic-unknown {
+  background: #ece9e2;
+  color: var(--muted);
+}
+
+/* ── drift chips ───────────────────────────────────────────────────── */
+
+.drift-chip {
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+}
+
+.drift-same {
+  background: #e2efe6;
+  color: var(--ok);
+}
+
+.drift-differs {
+  background: var(--warning-bg);
+  color: #7a5410;
+}
+
+.drift-missing,
+.drift-error {
+  background: #f7e2de;
+  color: var(--breach);
+}
+
+.drift-extra {
+  background: #e8edf3;
+  color: var(--closed);
+}
+
+/* ── charts ────────────────────────────────────────────────────────── */
+
+.chart-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+}
+
+.chart-panel,
+.chart-cell {
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.chart-cell h3 {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.4rem;
+}
+
+.u-legend {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.metric-picker {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.metric-picker select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* ── rendered docs ─────────────────────────────────────────────────── */
+
+.crumbs {
+  color: var(--muted);
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.crumb-current {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.doc-body {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 2rem 2.5rem;
+}
+
+.doc-body h1,
+.doc-body h2,
+.doc-body h3 {
+  line-height: 1.2;
+}
+
+.doc-body table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.doc-body th,
+.doc-body td {
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.doc-body pre {
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.doc-body pre.mermaid {
+  background: #fff;
+  display: flex;
+  justify-content: center;
+}
+
+.plain-file {
+  white-space: pre-wrap;
+}
+
+.doc-list {
+  columns: 2;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.doc-list li {
+  margin-bottom: 0.35rem;
+}
