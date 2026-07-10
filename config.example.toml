@@ -40,3 +40,8 @@ family = "kindred"
 name = "kc-sim"
 path = "~/tmp/tmp-diagram-uplift/kc-sim"
 family = "kindred"
+
+[[repos]]
+name = "guardrail-hub"
+path = "~/tmp/tmp-diagram-uplift/guardrail-hub"
+family = "hub"

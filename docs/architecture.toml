@@ -1,0 +1,97 @@
+# Architecture model for the "diagrams as tests" guardrail.
+#
+# Single source of truth for:
+#   - the generated component diagram + per-component pages
+#   - which modules are scanned for the domain class diagram
+#   - the architecture metrics snapshot and its hard budgets
+#
+# The directional layering contract lives in pyproject.toml
+# ([tool.importlinter]); the tiers below document that intent (dependencies must
+# only point downward, Entrypoints -> Core -> Foundation) and group the diagram.
+#
+# `component_of()` matches a module to a component by LONGEST module-prefix.
+#
+# guardrail-hub dogfoods its own canonical kit (kit/ is the canon; this
+# application of it is byte-identity-checked by tests/test_kit_dogfood.py).
+# The kit's two optional adapters — [tool_catalog] and [containers] — are
+# omitted: the hub has no decorator-registered tool surface and no stores (it
+# reads other repos' checkouts and keeps only an in-process cache).
+
+[project]
+root_package = "guardrail_hub"
+src_layout   = "src"
+
+# One-line description per component, shown at the top of its drill-down page
+# (docs/generated/components/<Component>.md). test_component_pages requires one
+# for every component in [components].
+[component_docs]
+Cli        = "The guardrail-hub console script: serve, apply, drift, version."
+Web        = "FastAPI dashboard: overview, repo detail, doc viewer, compare, drift panel."
+Store      = "In-process cache over the scanners, keyed on checkout state (HEAD sha + mtimes)."
+RepoScan   = "Worktree scanner: one registered checkout -> RepoSnapshot with badges, never a crash."
+History    = "Metric time series mined from the git history of each repo's committed metrics.json."
+Budgets    = "[budgets] declarations vs measured metrics -> ok/tight/breach/unknown traffic lights."
+Drift      = "AST-normalized comparison of a repo's kit copy against the canonical kit."
+Installer  = "guardrail-hub apply: writes the kit + a prefilled architecture.toml, prints the wiring."
+Kit        = "Access to the canonical kit: files, manifest roster, version."
+DocsRender = "Markdown rendering for generated docs: mermaid fences, escape-link rewriting, containment."
+Gitio      = "The one git subprocess seam (rev-parse, status, first-parent log, show)."
+Config     = "XDG-discovered TOML registry of monitored checkouts + server settings, env-overridable."
+Models     = "Frozen value types shared across tiers: snapshots, metric points, budgets, drift reports."
+Logging    = "Root logging configuration."
+Errors     = "GuardrailHubError hierarchy (ConfigError, RepoAccessError, KitError)."
+
+[components]
+Cli        = ["guardrail_hub.cli", "guardrail_hub.__main__"]
+Web        = ["guardrail_hub.web"]
+Store      = ["guardrail_hub.store"]
+RepoScan   = ["guardrail_hub.repo_scan"]
+History    = ["guardrail_hub.history"]
+Budgets    = ["guardrail_hub.budgets"]
+Drift      = ["guardrail_hub.drift"]
+Installer  = ["guardrail_hub.installer"]
+Kit        = ["guardrail_hub.kit"]
+DocsRender = ["guardrail_hub.docs_render"]
+Gitio      = ["guardrail_hub.gitio"]
+Config     = ["guardrail_hub.config"]
+Models     = ["guardrail_hub.models"]
+Logging    = ["guardrail_hub.logging_setup"]
+Errors     = ["guardrail_hub.errors"]
+
+# Tiers are for diagram grouping + documentation of the forbidden-import contract.
+# Dependencies must only point downward (Entrypoints -> Core -> Foundation).
+[tiers]
+Entrypoints = ["Cli", "Web"]
+Core        = ["Store", "RepoScan", "History", "Budgets", "Drift", "Installer", "Kit", "DocsRender", "Gitio"]
+Foundation  = ["Config", "Models", "Logging", "Errors"]
+
+# Hard architecture budgets, checked by tests/guardrail/test_metrics_budgets.py
+# against the metrics snapshot (docs/generated/metrics.md explains each one).
+# CI fails if a measured value exceeds its budget. Raising a budget is allowed
+# but must be an explicit, reviewed edit to this file; lower a budget after
+# improving the code to lock in the gain.
+#
+# Most budgets below are tight ratchets pinned at today's value (any regression
+# fails CI). max_module_lines is the exception: it is a STOP-LOSS ceiling set a
+# little above today's largest module so a big module can't quietly balloon.
+# Ratchet the *count* of oversized modules down via modules_over_800_lines.
+[budgets]
+cross_component_edges  = 36   # measured 2026-07; direction: down
+component_cycles       = 0    # no component-level cycles today; keep it that way
+module_cycles          = 0    # no module-level cycles today; keep it that way
+modules_over_800_lines = 0    # no god modules today; keep it that way
+max_module_lines       = 800  # stop-loss at the god-module threshold; largest today is installer (297)
+
+# Domain class diagram: the shared value types. Settings models (config) and
+# the kit-manifest working type (kit.KitFile) are not domain entities, so
+# excluded. test_domain_model_diagram asserts EVERY public model's module is in
+# include or exclude — a new model in an unlisted module fails until classified.
+[domain]
+include_modules = [
+    "guardrail_hub.models",
+]
+exclude_modules = [
+    "guardrail_hub.config",
+    "guardrail_hub.errors",
+    "guardrail_hub.kit",
+]
