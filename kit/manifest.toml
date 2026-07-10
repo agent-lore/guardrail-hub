@@ -1,0 +1,109 @@
+# Roster of the canonical kit files. Drift comparison and the installer both
+# drive off this list; tests/test_kit_manifest.py asserts it matches the kit/
+# directory exactly (both directions).
+#
+# Roles:
+#   core                — required in every kit application; AST-compared
+#   adapter-tool-catalog — only when [tool_catalog].include_modules is configured
+#   adapter-containers   — only when [containers].stores is configured
+#   doc                 — informational; presence-checked, content not compared
+#
+# alt_paths: historical placements accepted by the drift check (the installer
+# always writes the canonical path).
+
+[[files]]
+path = "tests/guardrail/_common.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_component_pages.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_diagram_toolkit.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_index.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_metrics_render.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_metrics_toolkit.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_architecture_diagram.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_component_pages.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_domain_model_diagram.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_generated_index.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_generated_manifest.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_layering_contract.py"
+role = "core"
+alt_paths = ["tests/test_layering_contract.py"]
+
+[[files]]
+path = "tests/guardrail/test_metrics_budgets.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/test_metrics_snapshot.py"
+role = "core"
+
+[[files]]
+path = "tests/test_metrics_diff.py"
+role = "core"
+
+[[files]]
+path = "tests/test_metrics_history.py"
+role = "core"
+
+[[files]]
+path = "scripts/metrics_diff.py"
+role = "core"
+
+[[files]]
+path = "scripts/metrics_history.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_tool_catalog.py"
+role = "adapter-tool-catalog"
+
+[[files]]
+path = "tests/guardrail/test_tool_catalog.py"
+role = "adapter-tool-catalog"
+
+[[files]]
+path = "tests/guardrail/_containers.py"
+role = "adapter-containers"
+
+[[files]]
+path = "tests/guardrail/test_container_diagram.py"
+role = "adapter-containers"
+
+[[files]]
+path = "tests/guardrail/AGENTS.md"
+role = "doc"
+
+[[files]]
+path = "tests/guardrail/CLAUDE.md"
+role = "doc"
