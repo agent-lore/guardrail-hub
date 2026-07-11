@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from tests.conftest import make_repo
+from tests.conftest import make_monorepo, make_repo
 
 from guardrail_hub.drift import compare_repo, installed_version, normalized_ast_dump
 from guardrail_hub.kit import kit_root, load_manifest
@@ -193,3 +193,50 @@ def test_pre_hub_repo_version(tmp_path: Path) -> None:
     repo = make_repo(tmp_path)
 
     assert installed_version(repo) == "pre-hub"
+
+
+# ── cpp adapter & monorepo subdir ─────────────────────────────────
+
+
+def _set_language_cpp(entry: RepoEntry) -> None:
+    arch = entry.root / "docs" / "architecture.toml"
+    text = arch.read_text(encoding="utf-8").replace(
+        'root_package = "fixture"', 'root_package = "fixture"\nlanguage = "cpp"'
+    )
+    arch.write_text(text, encoding="utf-8")
+
+
+def test_cpp_adapter_expected_for_cpp_language(tmp_path: Path) -> None:
+    entry = _kitted_repo(tmp_path)
+    _set_language_cpp(entry)
+
+    assert _statuses(entry)["tests/guardrail/_cpp_graph.py"] == "missing"
+
+    shutil.copyfile(
+        kit_root() / "tests/guardrail/_cpp_graph.py",
+        entry.path / "tests" / "guardrail" / "_cpp_graph.py",
+    )
+    assert _statuses(entry)["tests/guardrail/_cpp_graph.py"] == "same"
+
+
+def test_cpp_adapter_file_without_cpp_language_is_extra(tmp_path: Path) -> None:
+    entry = _kitted_repo(tmp_path)
+    shutil.copyfile(
+        kit_root() / "tests/guardrail/_cpp_graph.py",
+        entry.path / "tests" / "guardrail" / "_cpp_graph.py",
+    )
+
+    assert _statuses(entry)["tests/guardrail/_cpp_graph.py"] == "extra"
+
+
+def test_subdir_entry_compares_kit_under_subdir(tmp_path: Path) -> None:
+    repo = make_monorepo(tmp_path, subdir="sub")
+    _apply_core_kit(repo / "sub")
+    entry = RepoEntry(name="mono", path=repo, family="test", subdir="sub")
+
+    report = compare_repo(entry)
+
+    assert report.installed_version == "1.0.0"
+    assert all(f.status in ("same", "extra") for f in report.files), [
+        (f.path, f.status) for f in report.files if f.status not in ("same", "extra")
+    ]

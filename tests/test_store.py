@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
-from tests.conftest import commit_snapshot, git, make_metrics
+from tests.conftest import commit_snapshot, git, make_metrics, make_monorepo
 
 from guardrail_hub.config import HubConfig, ServerConfig
 from guardrail_hub.models import RepoEntry
@@ -79,3 +80,17 @@ def test_history_missing_repo_is_empty(tmp_path: Path) -> None:
     entry = RepoEntry(name="ghost", path=tmp_path / "nope", family="test")
 
     assert _store(entry).history(entry) == ()
+
+
+def test_snapshot_invalidated_by_subdir_regen(tmp_path: Path) -> None:
+    repo = make_monorepo(tmp_path, subdir="server")
+    entry = RepoEntry(name="mono-server", path=repo, subdir="server")
+    store = _store(entry)
+    assert store.snapshot(entry).metrics is not None
+
+    path = repo / "server" / "docs" / "generated" / "metrics.json"
+    path.write_text(json.dumps(make_metrics(size={"total_sloc": 999})), encoding="utf-8")
+    _touch(path)
+
+    snapshot = store.snapshot(entry)
+    assert snapshot.metrics is not None and snapshot.metrics["size"]["total_sloc"] == 999

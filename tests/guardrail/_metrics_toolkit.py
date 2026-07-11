@@ -25,6 +25,8 @@ from typing import Any
 import networkx as nx
 from tests.guardrail import _diagram_toolkit as dt
 from tests.guardrail._common import (
+    CPP_SUFFIXES,
+    LANGUAGE,
     REPO_ROOT,
     ROOT_PACKAGE,
     SRC_ROOT,
@@ -33,6 +35,7 @@ from tests.guardrail._common import (
     load_architecture,
     module_files,
     module_name_of,
+    module_paths,
 )
 
 COMPLEXITY_THRESHOLD = 10
@@ -121,12 +124,17 @@ def _physical_lines(text: str) -> int:
     return len(text.splitlines())
 
 
+# For C++ this misses /* */ block-comment bodies — an accepted approximation;
+# the physical line count is the exact one.
+_COMMENT_PREFIX = "//" if LANGUAGE == "cpp" else "#"
+
+
 def _sloc(text: str) -> int:
-    """Non-blank lines that are not pure ``#`` comments (docstrings count)."""
+    """Non-blank lines that are not pure line comments (docstrings count)."""
     return sum(
         1
         for line in text.splitlines()
-        if (stripped := line.strip()) and not stripped.startswith("#")
+        if (stripped := line.strip()) and not stripped.startswith(_COMMENT_PREFIX)
     )
 
 
@@ -148,10 +156,10 @@ def _size_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     over_800: list[str] = []
     max_module, max_lines = "", 0
 
-    for path in sorted(SRC_ROOT.rglob("*.py")):
-        module = module_name_of(path)
-        text = path.read_text(encoding="utf-8")
-        lines, sloc = _physical_lines(text), _sloc(text)
+    for module, paths in sorted(module_paths().items()):
+        texts = [p.read_text(encoding="utf-8") for p in paths]
+        lines = sum(_physical_lines(t) for t in texts)
+        sloc = sum(_sloc(t) for t in texts)
         total_lines += lines
         total_sloc += sloc
         total_modules += 1
@@ -163,21 +171,26 @@ def _size_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
         comp = component_of(module, components)
         if comp is None:
             continue
-        tree = ast.parse(text, filename=str(path))
         stats = per_component[comp]
         stats["modules"] += 1
         stats["lines"] += lines
         stats["sloc"] += sloc
-        stats["classes"] += sum(isinstance(n, ast.ClassDef) for n in ast.walk(tree))
-        stats["functions"] += sum(
-            isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef) for n in ast.walk(tree)
-        )
-        stats["public_symbols"] += sum(
-            1
-            for n in tree.body
-            if isinstance(n, ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef)
-            and not n.name.startswith("_")
-        )
+        # Declaration counts come from the Python AST; C++ modules report zeros
+        # (the keys stay so metrics.json keeps one schema across languages).
+        for path, text in zip(paths, texts, strict=True):
+            if path.suffix != ".py":
+                continue
+            tree = ast.parse(text, filename=str(path))
+            stats["classes"] += sum(isinstance(n, ast.ClassDef) for n in ast.walk(tree))
+            stats["functions"] += sum(
+                isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef) for n in ast.walk(tree)
+            )
+            stats["public_symbols"] += sum(
+                1
+                for n in tree.body
+                if isinstance(n, ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef)
+                and not n.name.startswith("_")
+            )
         if lines > stats["largest_module_lines"]:
             stats["largest_module"], stats["largest_module_lines"] = module, lines
 
@@ -255,7 +268,10 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     }
     all_functions: list[tuple[str, int]] = []
 
-    for path in sorted(SRC_ROOT.rglob("*.py")):
+    # Cyclomatic complexity is derived from the Python AST only; C++ projects
+    # report zeros under the same keys (schema stability across languages).
+    src_paths = sorted(SRC_ROOT.rglob("*.py")) if LANGUAGE == "python" else []
+    for path in src_paths:
         module = module_name_of(path)
         comp = component_of(module, components)
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -332,8 +348,13 @@ def _mcp_metrics() -> dict[str, Any]:
 
 def _test_metrics(src_lines: int) -> dict[str, Any]:
     tests_root = REPO_ROOT / "tests"
+    # Count the tests written in the project language (a C++ project's Python
+    # guardrail files under tests/ are tooling, not its test suite).
+    suffixes = CPP_SUFFIXES if LANGUAGE == "cpp" else (".py",)
     test_lines = sum(
-        _physical_lines(p.read_text(encoding="utf-8")) for p in sorted(tests_root.rglob("*.py"))
+        _physical_lines(p.read_text(encoding="utf-8"))
+        for p in sorted(tests_root.rglob("*"))
+        if p.suffix in suffixes
     )
     return {
         "ratio": round(test_lines / src_lines, 2) if src_lines else 0.0,

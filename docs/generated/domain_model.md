@@ -47,6 +47,7 @@ classDiagram
     +path Path
     +family str
     +default_branch str
+    +subdir str
   }
   class RepoSnapshot {
     +schema int | None

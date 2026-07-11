@@ -6,6 +6,7 @@
 #   core                — required in every kit application; AST-compared
 #   adapter-tool-catalog — only when [tool_catalog].include_modules is configured
 #   adapter-containers   — only when [containers].stores is configured
+#   adapter-cpp          — only when [project] language = "cpp"
 #   doc                 — informational; presence-checked, content not compared
 #
 # alt_paths: historical placements accepted by the drift check (the installer
@@ -99,6 +100,10 @@ role = "adapter-containers"
 [[files]]
 path = "tests/guardrail/test_container_diagram.py"
 role = "adapter-containers"
+
+[[files]]
+path = "tests/guardrail/_cpp_graph.py"
+role = "adapter-cpp"
 
 [[files]]
 path = "tests/guardrail/AGENTS.md"

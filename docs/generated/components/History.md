@@ -11,11 +11,12 @@ Metric time series mined from the git history of each repo's committed metrics.j
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.history` | XS | 0 | 3 |
+| `guardrail_hub.history` | XS | 0 | 4 |
 
 ## Public API
 
 ### `guardrail_hub.history`
+- def `snapshot_path` — Repo-relative path of the metrics snapshot (subdir-aware for monorepos).
 - def `mine_history` — One MetricPoint per first-parent commit of ``ref`` touching the snapshot.
 - def `extract` — Value at a dotted path; a list-valued path is summarized via ``.count``.
 - def `series` — Chart-ready shape: dates/shas plus one value list per requested key.

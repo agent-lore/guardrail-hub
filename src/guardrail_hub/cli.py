@@ -20,8 +20,14 @@ def _build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--port", type=int, default=None)
 
     apply_ = sub.add_parser("apply", help="port the canonical kit into a target repo")
-    apply_.add_argument("target", type=Path, help="path to the target repo checkout")
+    apply_.add_argument("target", type=Path, help="path to the target project root")
     apply_.add_argument("--root-package", default=None, help="override root package detection")
+    apply_.add_argument(
+        "--language",
+        choices=("python", "cpp"),
+        default="python",
+        help="dependency-graph frontend for the target (default: python)",
+    )
     apply_.add_argument("--with-tool-catalog", action="store_true")
     apply_.add_argument("--with-containers", action="store_true")
 
@@ -94,6 +100,7 @@ def _cmd_apply(args: argparse.Namespace) -> int:
     report = apply_kit(
         args.target.expanduser().resolve(),
         root_package=args.root_package,
+        language=args.language,
         with_tool_catalog=args.with_tool_catalog,
         with_containers=args.with_containers,
     )

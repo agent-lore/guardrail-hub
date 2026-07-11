@@ -45,3 +45,18 @@ family = "kindred"
 name = "guardrail-hub"
 path = "~/tmp/tmp-diagram-uplift/guardrail-hub"
 family = "hub"
+
+# Monorepo components register as separate entries over one checkout: `subdir`
+# is where the kit instance (tests/guardrail/, docs/) lives; git operations
+# stay on the checkout root.
+[[repos]]
+name = "robot-companion-server"
+path = "~/projects/nao/robot-companion"
+family = "nao"
+subdir = "server"
+
+[[repos]]
+name = "robot-companion-client"
+path = "~/projects/nao/robot-companion"
+family = "nao"
+subdir = "client"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests.conftest import make_metrics, make_repo
+from tests.conftest import make_metrics, make_monorepo, make_repo
 
 from guardrail_hub.history import extract, mine_history, series
 from guardrail_hub.models import RepoEntry
@@ -77,3 +77,14 @@ def test_series_shape(tmp_path: Path) -> None:
     assert len(payload["dates"]) == len(payload["shas"]) == 2
     assert payload["series"]["graph.cross_component_edges"] == [5, 6]
     assert payload["series"]["mcp.tools"] == [None, None]
+
+
+def test_mine_history_subdir_snapshot_path(tmp_path: Path) -> None:
+    metrics_a = make_metrics(size={"total_sloc": 100})
+    metrics_b = make_metrics(size={"total_sloc": 200})
+    repo = make_monorepo(tmp_path, subdir="server", snapshots=[metrics_a, metrics_b])
+    entry = RepoEntry(name="mono-server", path=repo, subdir="server")
+
+    points = mine_history(entry, "main")
+
+    assert [p.metrics["size"]["total_sloc"] for p in points] == [100, 200]

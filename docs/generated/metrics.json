@@ -43,8 +43,8 @@
       },
       "Installer": {
         "functions_over_10": 2,
-        "max_complexity": 14,
-        "max_function": "guardrail_hub.installer._tiers_from_importlinter"
+        "max_complexity": 16,
+        "max_function": "guardrail_hub.installer.apply_kit"
       },
       "Kit": {
         "functions_over_10": 0,
@@ -84,16 +84,20 @@
         "qualname": "guardrail_hub.cli._cmd_drift"
       },
       {
+        "complexity": 16,
+        "qualname": "guardrail_hub.installer.apply_kit"
+      },
+      {
         "complexity": 14,
         "qualname": "guardrail_hub.installer._tiers_from_importlinter"
       },
       {
-        "complexity": 12,
-        "qualname": "guardrail_hub.installer.apply_kit"
+        "complexity": 10,
+        "qualname": "guardrail_hub.drift._extras"
       },
       {
         "complexity": 10,
-        "qualname": "guardrail_hub.drift._extras"
+        "qualname": "guardrail_hub.installer.build_architecture_skeleton"
       },
       {
         "complexity": 10,
@@ -102,10 +106,6 @@
       {
         "complexity": 9,
         "qualname": "guardrail_hub.drift._strip_docstrings"
-      },
-      {
-        "complexity": 9,
-        "qualname": "guardrail_hub.installer.build_architecture_skeleton"
       },
       {
         "complexity": 8,
@@ -120,7 +120,7 @@
         "qualname": "guardrail_hub.config._parse_repos"
       }
     ],
-    "total_functions": 98
+    "total_functions": 102
   },
   "domain": {
     "associations": 5,
@@ -161,9 +161,9 @@
         "instability": 0.0
       },
       "Gitio": {
-        "fan_in": 3,
+        "fan_in": 4,
         "fan_out": 1,
-        "instability": 0.25
+        "instability": 0.2
       },
       "History": {
         "fan_in": 2,
@@ -172,8 +172,8 @@
       },
       "Installer": {
         "fan_in": 1,
-        "fan_out": 2,
-        "instability": 0.67
+        "fan_out": 3,
+        "instability": 0.75
       },
       "Kit": {
         "fan_in": 4,
@@ -206,7 +206,7 @@
         "instability": 0.89
       }
     },
-    "cross_component_edges": 36,
+    "cross_component_edges": 37,
     "longest_component_chain": 5,
     "module_cycle_count": 0,
     "module_cycles": [],
@@ -240,21 +240,21 @@
         "classes": 0,
         "functions": 6,
         "largest_module": "guardrail_hub.cli",
-        "largest_module_lines": 122,
-        "lines": 128,
+        "largest_module_lines": 129,
+        "lines": 135,
         "modules": 2,
         "public_symbols": 1,
-        "sloc": 99
+        "sloc": 106
       },
       "Config": {
         "classes": 2,
-        "functions": 11,
+        "functions": 12,
         "largest_module": "guardrail_hub.config",
-        "largest_module_lines": 199,
-        "lines": 199,
+        "largest_module_lines": 211,
+        "lines": 211,
         "modules": 1,
         "public_symbols": 4,
-        "sloc": 154
+        "sloc": 164
       },
       "DocsRender": {
         "classes": 1,
@@ -270,11 +270,11 @@
         "classes": 1,
         "functions": 10,
         "largest_module": "guardrail_hub.drift",
-        "largest_module_lines": 190,
-        "lines": 190,
+        "largest_module_lines": 192,
+        "lines": 192,
         "modules": 1,
         "public_symbols": 3,
-        "sloc": 160
+        "sloc": 162
       },
       "Errors": {
         "classes": 4,
@@ -298,23 +298,23 @@
       },
       "History": {
         "classes": 0,
-        "functions": 3,
+        "functions": 4,
         "largest_module": "guardrail_hub.history",
-        "largest_module_lines": 69,
-        "lines": 69,
+        "largest_module_lines": 75,
+        "lines": 75,
         "modules": 1,
-        "public_symbols": 3,
-        "sloc": 56
+        "public_symbols": 4,
+        "sloc": 60
       },
       "Installer": {
         "classes": 0,
-        "functions": 10,
+        "functions": 11,
         "largest_module": "guardrail_hub.installer",
-        "largest_module_lines": 297,
-        "lines": 297,
+        "largest_module_lines": 360,
+        "lines": 360,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 245
+        "sloc": 297
       },
       "Kit": {
         "classes": 1,
@@ -338,23 +338,23 @@
       },
       "Models": {
         "classes": 8,
-        "functions": 2,
+        "functions": 3,
         "largest_module": "guardrail_hub.models",
-        "largest_module_lines": 116,
-        "lines": 116,
+        "largest_module_lines": 127,
+        "lines": 127,
         "modules": 1,
         "public_symbols": 8,
-        "sloc": 86
+        "sloc": 95
       },
       "RepoScan": {
         "classes": 0,
         "functions": 7,
         "largest_module": "guardrail_hub.repo_scan",
-        "largest_module_lines": 145,
-        "lines": 145,
+        "largest_module_lines": 147,
+        "lines": 147,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 125
+        "sloc": 127
       },
       "Store": {
         "classes": 1,
@@ -378,15 +378,15 @@
       }
     },
     "max_module": "guardrail_hub.installer",
-    "max_module_lines": 297,
+    "max_module_lines": 360,
     "modules_over_800": [],
-    "total_lines": 1871,
+    "total_lines": 1974,
     "total_modules": 17,
-    "total_sloc": 1514
+    "total_sloc": 1600
   },
   "tests": {
-    "ratio": 1.79,
-    "src_lines": 1871,
-    "test_lines": 3345
+    "ratio": 1.95,
+    "src_lines": 1974,
+    "test_lines": 3847
   }
 }

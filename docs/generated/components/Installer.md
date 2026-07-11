@@ -11,7 +11,7 @@ guardrail-hub apply: writes the kit + a prefilled architecture.toml, prints the 
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.installer` | S | 0 | 2 |
+| `guardrail_hub.installer` | M | 0 | 2 |
 
 ## Public API
 
@@ -21,7 +21,7 @@ guardrail-hub apply: writes the kit + a prefilled architecture.toml, prints the 
 
 ## Dependencies
 
-- Depends on: [Errors](Errors.md), [Kit](Kit.md)
+- Depends on: [Errors](Errors.md), [Gitio](Gitio.md), [Kit](Kit.md)
 - Used by: [Cli](Cli.md)
 
 [← all generated docs](../README.md)

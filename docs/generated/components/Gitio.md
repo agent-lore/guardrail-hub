@@ -27,6 +27,6 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 ## Dependencies
 
 - Depends on: [Errors](Errors.md)
-- Used by: [History](History.md), [RepoScan](RepoScan.md), [Store](Store.md)
+- Used by: [History](History.md), [Installer](Installer.md), [RepoScan](RepoScan.md), [Store](Store.md)
 
 [← all generated docs](../README.md)

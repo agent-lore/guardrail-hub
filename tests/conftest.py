@@ -93,9 +93,11 @@ def make_metrics(**overrides: Any) -> dict[str, Any]:
     return metrics
 
 
-def commit_snapshot(repo: Path, metrics: dict[str, Any] | str, message: str = "update") -> str:
+def commit_snapshot(
+    repo: Path, metrics: dict[str, Any] | str, message: str = "update", subdir: str = ""
+) -> str:
     """Write metrics.json (dict, or a raw string for malformed cases) and commit."""
-    generated = repo / "docs" / "generated"
+    generated = (repo / subdir if subdir else repo) / "docs" / "generated"
     generated.mkdir(parents=True, exist_ok=True)
     content = metrics if isinstance(metrics, str) else json.dumps(metrics, indent=2)
     (generated / "metrics.json").write_text(content, encoding="utf-8")
@@ -117,6 +119,24 @@ def make_repo(root: Path, snapshots: list[dict[str, Any] | str] | None = None) -
     (repo / "README.md").write_text("fixture\n", encoding="utf-8")
     for i, snapshot in enumerate(snapshots if snapshots is not None else [make_metrics()]):
         commit_snapshot(repo, snapshot, message=f"snapshot {i}")
+    return repo
+
+
+def make_monorepo(
+    root: Path, subdir: str = "server", snapshots: list[dict[str, Any] | str] | None = None
+) -> Path:
+    """A git repo whose kit instance lives under a subdirectory (monorepo shape)."""
+    repo = root / "mono"
+    repo.mkdir(parents=True, exist_ok=True)
+    _run(repo, "init", "-q", "-b", "main")
+    _run(repo, "config", "user.email", "test@example.com")
+    _run(repo, "config", "user.name", "Test")
+    docs = repo / subdir / "docs"
+    docs.mkdir(parents=True)
+    (docs / "architecture.toml").write_text(_ARCHITECTURE_TOML, encoding="utf-8")
+    (repo / "README.md").write_text("monorepo fixture\n", encoding="utf-8")
+    for i, snapshot in enumerate(snapshots if snapshots is not None else [make_metrics()]):
+        commit_snapshot(repo, snapshot, message=f"snapshot {i}", subdir=subdir)
     return repo
 
 

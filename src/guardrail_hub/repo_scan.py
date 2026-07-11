@@ -29,6 +29,8 @@ def _status(entry: RepoEntry) -> RepoStatus:
         return RepoStatus(present=False, error=f"checkout not found at {entry.path}")
     if not gitio.is_git_repo(entry.path):
         return RepoStatus(present=True, is_git=False, error="not a git repository")
+    if entry.subdir and not entry.root.is_dir():
+        return RepoStatus(present=True, is_git=True, error=f"subdir {entry.subdir!r} not found")
     try:
         branch = gitio.current_branch(entry.path)
         return RepoStatus(
@@ -121,7 +123,7 @@ def scan(entry: RepoEntry) -> RepoSnapshot:
     if not status.present or not status.is_git or status.error:
         return RepoSnapshot(entry=entry, status=status)
 
-    metrics, metrics_error = _load_metrics(entry.path)
+    metrics, metrics_error = _load_metrics(entry.root)
     if metrics_error:
         status = RepoStatus(
             present=True,
@@ -132,7 +134,7 @@ def scan(entry: RepoEntry) -> RepoSnapshot:
             head_sha=status.head_sha,
             error=metrics_error,
         )
-    architecture = _load_architecture(entry.path)
+    architecture = _load_architecture(entry.root)
     schema = metrics.get("schema") if metrics else None
     return RepoSnapshot(
         entry=entry,
@@ -141,5 +143,5 @@ def scan(entry: RepoEntry) -> RepoSnapshot:
         metrics=metrics,
         budgets=budget_statuses(architecture, metrics),
         components=component_rows(metrics, architecture) if metrics else (),
-        docs=_doc_listing(entry.path),
+        docs=_doc_listing(entry.root),
     )

@@ -128,6 +128,17 @@ def _optional_int(table: dict[str, Any], key: str, default: int, where: str) -> 
     return value
 
 
+def _optional_subdir(table: dict[str, Any], where: str) -> str:
+    """A relative path inside the checkout (monorepos); empty = the checkout root."""
+    value = table.get("subdir", "")
+    if not isinstance(value, str):
+        raise ConfigError(f"{where}: 'subdir' must be a string")
+    subdir = value.strip().strip("/")
+    if subdir and (subdir.startswith("..") or Path(subdir).is_absolute()):
+        raise ConfigError(f"{where}: 'subdir' must be a relative path inside the checkout")
+    return subdir
+
+
 def _parse_repos(raw: Any) -> tuple[RepoEntry, ...]:
     if raw is None:
         raise ConfigError("config has no [[repos]] entries — nothing to monitor")
@@ -148,6 +159,7 @@ def _parse_repos(raw: Any) -> tuple[RepoEntry, ...]:
                 path=path,
                 family=_optional_str(table, "family", "default", where),
                 default_branch=_optional_str(table, "default_branch", "main", where),
+                subdir=_optional_subdir(table, where),
             )
         )
     return tuple(entries)

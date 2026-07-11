@@ -146,7 +146,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
     @app.get("/repos/{name}/docs/{doc_path:path}", response_class=HTMLResponse)
     async def doc_view(request: Request, name: str, doc_path: str) -> HTMLResponse:
         entry = _entry_or_404(name)
-        generated = entry.path / "docs" / "generated"
+        generated = entry.root / "docs" / "generated"
         target = docs_render.contained(generated, generated / doc_path)
         if target is None or not target.is_file() or target.suffix != ".md":
             raise HTTPException(status_code=404, detail="no such generated doc")
@@ -167,7 +167,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
     @app.get("/repos/{name}/file/{file_path:path}", response_class=HTMLResponse)
     async def repo_file(request: Request, name: str, file_path: str) -> HTMLResponse:
         entry = _entry_or_404(name)
-        target = docs_render.contained(entry.path, entry.path / file_path)
+        target = docs_render.contained(entry.root, entry.root / file_path)
         if (
             target is None
             or not target.is_file()

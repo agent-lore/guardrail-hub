@@ -18,12 +18,23 @@ DriftStatus = Literal["same", "differs", "missing", "extra", "error"]
 
 @dataclass(frozen=True)
 class RepoEntry:
-    """One registered repo from the hub config."""
+    """One registered repo from the hub config.
+
+    ``subdir`` supports monorepos: the kit instance (tests/guardrail/, docs/)
+    lives under ``path/subdir`` while git operations stay on the checkout at
+    ``path``. One checkout can register several entries with distinct subdirs.
+    """
 
     name: str
     path: Path
     family: str = "default"
     default_branch: str = "main"
+    subdir: str = ""
+
+    @property
+    def root(self) -> Path:
+        """The project root the kit instance sees (== path unless subdir is set)."""
+        return self.path / self.subdir if self.subdir else self.path
 
 
 @dataclass(frozen=True)

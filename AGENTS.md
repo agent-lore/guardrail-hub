@@ -3,15 +3,19 @@
 guardrail-hub is the canonical home of the "diagrams as tests" architecture
 guardrail kit, plus a local FastAPI dashboard that traces metrics, budgets, and
 diagrams across every repo the kit is installed in (lithos, lithos-lens,
-lithos-loom, influx, kc-agent, kc-sim — and this repo itself).
+lithos-loom, influx, kc-agent, kc-sim, the two robot-companion monorepo
+instances — and this repo itself).
 
 Two jobs, two surfaces:
 
 1. **Canonical kit + installer** — `kit/` is the one true copy of the toolkit.
    `guardrail-hub apply <repo>` ports it (prefilling `docs/architecture.toml`
-   from the target's import-linter contracts); `guardrail-hub drift` reports
-   every registered repo's divergence from the canon (AST-normalized, so
-   formatting/docstring differences don't count).
+   from the target's import-linter contracts); `--language cpp` ports to a C++
+   project instead (quoted-`#include` graph, no compiler needed; Python-only
+   views omitted/zeroed). `guardrail-hub drift` reports every registered
+   repo's divergence from the canon (AST-normalized, so formatting/docstring
+   differences don't count). Monorepos register one entry per kit instance
+   via the config's `subdir` field.
 2. **Dashboard** — `guardrail-hub serve` renders repo cards, budget
    traffic-lights, metric trends (mined from each repo's committed
    `metrics.json` git history), Mermaid diagrams, and the drift panel.

@@ -33,7 +33,7 @@ def test_kit_version_is_semverish() -> None:
 
 
 def test_roles_are_known() -> None:
-    known = {"core", "adapter-tool-catalog", "adapter-containers", "doc"}
+    known = {"core", "adapter-tool-catalog", "adapter-containers", "adapter-cpp", "doc"}
 
     assert {f.role for f in load_manifest()} <= known
 

@@ -142,3 +142,44 @@ def test_root_package_override(tmp_path: Path) -> None:
 
     arch = (target / "docs" / "architecture.toml").read_text(encoding="utf-8")
     assert 'root_package = "fixture_proj"' in arch
+
+
+# ── cpp targets ────────────────────────────────────────────────────
+
+
+def make_cpp_target(tmp_path: Path) -> Path:
+    target = tmp_path / "cpp-target"
+    (target / "src" / "util").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=target, check=True)
+    (target / "src" / "util" / "log.h").write_text("#pragma once\n", encoding="utf-8")
+    return target
+
+
+def test_apply_cpp_target(tmp_path: Path) -> None:
+    target = make_cpp_target(tmp_path)
+
+    report = apply_kit(target, language="cpp", root_package="agent")
+
+    assert (target / "tests" / "guardrail" / "_cpp_graph.py").is_file()
+    assert (target / "tests" / "guardrail" / "_common.py").is_file()
+    arch = (target / "docs" / "architecture.toml").read_text(encoding="utf-8")
+    assert 'language     = "cpp"' in arch
+    assert 'root_package = "agent"' in arch
+    assert "[cpp.virtual_includes]" in arch
+    # the cpp checklist replaces the import-linter step with the tier-order rule
+    assert "No import-linter needed for C++" in report
+    assert "pytest.ini" in report
+
+
+def test_apply_cpp_requires_root_package(tmp_path: Path) -> None:
+    target = make_cpp_target(tmp_path)
+
+    with pytest.raises(KitError, match="--root-package is required"):
+        apply_kit(target, language="cpp")
+
+
+def test_apply_rejects_unknown_language(tmp_path: Path) -> None:
+    target = make_cpp_target(tmp_path)
+
+    with pytest.raises(KitError, match="unsupported language"):
+        apply_kit(target, language="rust", root_package="agent")

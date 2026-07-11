@@ -79,6 +79,8 @@ def _adapters_enabled(architecture: Mapping[str, Any]) -> set[str]:
         enabled.add("adapter-tool-catalog")
     if architecture.get("containers", {}).get("stores"):
         enabled.add("adapter-containers")
+    if architecture.get("project", {}).get("language") == "cpp":
+        enabled.add("adapter-cpp")
     return enabled
 
 
@@ -152,13 +154,13 @@ def installed_version(repo: Path) -> str:
 def compare_repo(entry: RepoEntry) -> DriftReport:
     """Drift report for one registered repo (never raises for repo-side problems)."""
     manifest = load_manifest()
-    architecture = _load_architecture(entry.path)
+    architecture = _load_architecture(entry.root)
     enabled = _adapters_enabled(architecture)
 
     results: list[FileDrift] = []
     for kit_file in manifest:
         adapter = kit_file.role.startswith("adapter-")
-        found = _resolve(entry.path, kit_file)
+        found = _resolve(entry.root, kit_file)
         if adapter and kit_file.role not in enabled:
             if found is not None:
                 results.append(
@@ -181,10 +183,10 @@ def compare_repo(entry: RepoEntry) -> DriftReport:
                     path=kit_file.path, role=kit_file.role, status="same", detail="presence only"
                 )
             )
-    results.extend(_extras(entry.path, manifest))
+    results.extend(_extras(entry.root, manifest))
     return DriftReport(
         repo=entry.name,
         kit_version=kit_version(),
-        installed_version=installed_version(entry.path),
+        installed_version=installed_version(entry.root),
         files=tuple(results),
     )

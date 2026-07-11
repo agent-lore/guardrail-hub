@@ -21,6 +21,11 @@ from guardrail_hub.models import MetricPoint, RepoEntry
 SNAPSHOT_PATH = "docs/generated/metrics.json"
 
 
+def snapshot_path(entry: RepoEntry) -> str:
+    """Repo-relative path of the metrics snapshot (subdir-aware for monorepos)."""
+    return f"{entry.subdir}/{SNAPSHOT_PATH}" if entry.subdir else SNAPSHOT_PATH
+
+
 def mine_history(entry: RepoEntry, ref: str) -> tuple[MetricPoint, ...]:
     """One MetricPoint per first-parent commit of ``ref`` touching the snapshot.
 
@@ -28,9 +33,10 @@ def mine_history(entry: RepoEntry, ref: str) -> tuple[MetricPoint, ...]:
     the kit's own history walker.
     """
     points: list[MetricPoint] = []
-    for sha, date_str in gitio.first_parent_log(entry.path, ref, SNAPSHOT_PATH):
+    rel = snapshot_path(entry)
+    for sha, date_str in gitio.first_parent_log(entry.path, ref, rel):
         try:
-            metrics = json.loads(gitio.show_file(entry.path, sha, SNAPSHOT_PATH))
+            metrics = json.loads(gitio.show_file(entry.path, sha, rel))
         except RepoAccessError:
             continue  # commit removed the file (or predates it)
         except json.JSONDecodeError:

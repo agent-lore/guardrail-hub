@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tests.conftest import git, make_metrics
+from tests.conftest import git, make_metrics, make_monorepo
 
 from guardrail_hub.models import RepoEntry
 from guardrail_hub.repo_scan import scan
@@ -90,3 +90,25 @@ def test_scan_reads_worktree_not_head(fixture_entry: RepoEntry) -> None:
     snapshot = scan(fixture_entry)
 
     assert snapshot.schema == 42  # uncommitted edit is visible ("now" = worktree)
+
+
+def test_scan_subdir_entry_reads_under_subdir(tmp_path: Path) -> None:
+    repo = make_monorepo(tmp_path, subdir="server")
+    entry = RepoEntry(name="mono-server", path=repo, family="test", subdir="server")
+
+    snapshot = scan(entry)
+
+    assert snapshot.status.error == ""
+    assert snapshot.has_metrics
+    assert snapshot.budgets  # architecture.toml found under the subdir
+    assert "metrics.json" not in snapshot.status.error
+
+
+def test_scan_missing_subdir_is_badge_not_crash(tmp_path: Path) -> None:
+    repo = make_monorepo(tmp_path, subdir="server")
+    entry = RepoEntry(name="mono-client", path=repo, family="test", subdir="client")
+
+    snapshot = scan(entry)
+
+    assert not snapshot.has_metrics
+    assert "subdir 'client' not found" in snapshot.status.error

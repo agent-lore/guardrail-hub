@@ -135,3 +135,32 @@ def test_find_config_nothing_found(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 
     with pytest.raises(ConfigError, match="No config found"):
         find_config_path()
+
+
+def test_repo_subdir_parses_and_roots(tmp_path: Path) -> None:
+    content = """
+[[repos]]
+name = "mono-server"
+path = "/tmp/mono"
+subdir = "server"
+"""
+    config = load_config(_write(tmp_path / "config.toml", content))
+
+    entry = config.repos[0]
+    assert entry.subdir == "server"
+    assert entry.root == Path("/tmp/mono/server")
+
+
+def test_repo_subdir_defaults_to_checkout_root(tmp_path: Path) -> None:
+    config = load_config(_write(tmp_path / "config.toml"))
+
+    entry = config.repos[0]
+    assert entry.subdir == ""
+    assert entry.root == entry.path
+
+
+def test_repo_subdir_rejects_escapes(tmp_path: Path) -> None:
+    content = '[[repos]]\nname = "a"\npath = "/tmp/a"\nsubdir = "../outside"\n'
+
+    with pytest.raises(ConfigError, match="relative path inside the checkout"):
+        load_config(_write(tmp_path / "config.toml", content))

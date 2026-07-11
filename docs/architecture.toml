@@ -76,7 +76,7 @@ Foundation  = ["Config", "Models", "Logging", "Errors"]
 # little above today's largest module so a big module can't quietly balloon.
 # Ratchet the *count* of oversized modules down via modules_over_800_lines.
 [budgets]
-cross_component_edges  = 36   # measured 2026-07; direction: down
+cross_component_edges  = 37   # measured 2026-07 (+1: installer→gitio for worktree detection); direction: down
 component_cycles       = 0    # no component-level cycles today; keep it that way
 module_cycles          = 0    # no module-level cycles today; keep it that way
 modules_over_800_lines = 0    # no god modules today; keep it that way

@@ -22,7 +22,7 @@ _SnapshotKey = tuple[str, float, float]
 
 def _mtime(entry: RepoEntry, rel: str) -> float:
     try:
-        return (entry.path / rel).stat().st_mtime
+        return (entry.root / rel).stat().st_mtime
     except OSError:
         return 0.0
 

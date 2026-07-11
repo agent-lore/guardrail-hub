@@ -24,11 +24,18 @@ output for identical input:
 
 ## No importing the target package at generation time
 
-Everything is **static analysis** — `ast` plus grimp's import graph. Importing
-the package would drag its heavy runtime dependencies into test collection and
-risk side effects.
-`build_import_graph()` in `_common.py` is the single grimp builder and is
-`lru_cache`d; reuse it, don't rebuild.
+Everything is **static analysis** — `ast` plus the project's dependency graph.
+Importing the package would drag its heavy runtime dependencies into test
+collection and risk side effects.
+`build_import_graph()` in `_common.py` is the single graph builder and is
+`lru_cache`d; reuse it, don't rebuild. It dispatches on `[project] language`:
+grimp's import graph for Python (the default), the quoted-`#include` graph from
+`_cpp_graph.py` for `language = "cpp"` — both expose the same surface
+(`.modules` + `find_modules_directly_imported_by`), so generators stay
+language-blind. Python-only views (domain model, complexity, public API,
+class/function counts) report zeros or are omitted for C++; the layering
+contract swaps import-linter for a no-upward-tier-edge check on the include
+graph.
 
 ## Config is the source of truth, not the code
 
@@ -39,7 +46,11 @@ fail until the config matches reality, which is the point: adding a module,
 component, store, or tool means editing the toml.
 
 Config sections: `[project]`, `[components]`, `[tiers]`, `[domain]`,
-`[tool_catalog]`, `[containers]`, `[budgets]`, `[component_docs]`.
+`[tool_catalog]`, `[containers]`, `[cpp]`, `[budgets]`, `[component_docs]`.
+
+For C++ projects, `[cpp] virtual_includes` maps generated include-path prefixes
+(e.g. protobuf headers emitted into the build dir) to synthetic modules so a
+generated seam still appears as a component instead of vanishing as "external".
 
 The **tool catalog** (`[tool_catalog]`) and **container view** (`[containers]`)
 are optional adapters: their driver tests skip and their artifacts are omitted
@@ -94,6 +105,7 @@ Always regenerate and commit after touching the kit.
 | `_metrics_toolkit.py` / `_metrics_render.py` | compute metrics / render to `metrics.json` + `metrics.md` |
 | `_tool_catalog.py` | `tool_catalog.md` (AST scan of `@*.tool()`-decorated handlers) |
 | `_containers.py` | `containers.md` (data stores, declared but anchored to `StorageConfig`) |
+| `_cpp_graph.py` | quoted-`#include` graph for `language = "cpp"` (grimp duck-type) |
 | `_component_pages.py` | `components/<Component>.md` drill-down pages |
 | `_index.py` | artifact registry + `README.md` index |
 | `test_*.py` | one driver per artifact, plus manifest + budget guards |

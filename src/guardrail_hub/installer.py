@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from guardrail_hub import gitio
 from guardrail_hub.errors import KitError
 from guardrail_hub.kit import KitFile, kit_root, kit_version, load_manifest
 
@@ -55,6 +56,11 @@ def _detect_src_layout(target: Path, root_package: str) -> str:
         f"package {root_package!r} found neither at src/{root_package} nor ./{root_package}; "
         "pass --root-package if detection picked the wrong name"
     )
+
+
+def _detect_cpp_src_layout(target: Path) -> str:
+    """C++ sources live directly under src/ (or the project root) — no package dir."""
+    return "src" if (target / "src").is_dir() else ""
 
 
 # ── architecture.toml prefill ──────────────────────────────────────────
@@ -105,8 +111,17 @@ def _padded(pairs: list[tuple[str, str]]) -> list[str]:
     return [f"{k.ljust(width)} = {v}" for k, v in pairs]
 
 
+_CPP_SECTION_HINT = """
+# C++ only: map generated include-path prefixes (headers emitted into the build
+# dir, e.g. protobuf) to synthetic modules so the seam shows as a component
+# instead of vanishing as "external". Module names get root_package prefixed.
+# [cpp.virtual_includes]
+# "nao/v1/" = "proto_gen"
+"""
+
+
 def build_architecture_skeleton(
-    pyproject: Mapping[str, Any], root_package: str, src_layout: str
+    pyproject: Mapping[str, Any], root_package: str, src_layout: str, language: str = "python"
 ) -> str:
     """The prefilled docs/architecture.toml for a new port."""
     template = (kit_root() / "docs" / "architecture.skeleton.toml").read_text(encoding="utf-8")
@@ -146,15 +161,19 @@ def build_architecture_skeleton(
         "# modules_over_800_lines = TODO",
         "# max_module_lines       = TODO  # stop-loss, a little above today's largest module",
     ]
-    return template.format(
+    skeleton = template.format(
         kit_version=kit_version(),
         root_package=root_package,
         src_layout=src_layout,
+        language=language,
         component_docs_block="\n".join(component_docs),
         components_block="\n".join(components),
         tiers_block="\n".join(tier_lines),
         budgets_block="\n".join(budgets),
     )
+    if language == "cpp":
+        skeleton += _CPP_SECTION_HINT
+    return skeleton
 
 
 # ── snippets & checklist (printed, never written) ──────────────────────
@@ -233,9 +252,38 @@ _CHECKLIST = """\
     (~/.config/guardrail-hub/config.toml) so the dashboard picks it up.
 """
 
+_CHECKLIST_CPP = """\
+1. Give the guardrail a Python runtime: any env with pytest + networkx works
+   (a sibling Python project's venv is fine, e.g. `uv run --project ../server`).
+2. Ensure pytest can import the kit as a package — add a minimal pytest.ini
+   next to tests/:
+     [pytest]
+     pythonpath = .
+3. The layering contract IS the [tiers] declaration order:
+   test_layering_contract fails on any include edge that points at a higher
+   tier. No import-linter needed for C++.
+4. Review docs/architecture.toml: resolve every TODO — map every module (the
+   .h/.cpp pair merged by stem) to a component, write [component_docs]
+   one-liners, and map generated include prefixes via [cpp.virtual_includes].
+5. Run `pytest tests/guardrail -q` TWICE. First-run gotcha: with an empty
+   docs/generated/, the index/manifest tests run before the generators
+   (alphabetical order), so the very first run can fail; the second passes.
+6. Read the measured values from docs/generated/metrics.md and pin [budgets]
+   (uncomment, fill numbers; max_module_lines a little above today's largest).
+7. Run the tests again after the budget edit and commit docs/generated/.
+8. Wire a `diagrams` target for this instance into the repo Makefile and add
+   the drift gate (`git status --porcelain <root>/docs/generated`) to CI —
+   the include scan is pure text, no compiler or build dir needed.
+9. Checks green, commit, PR.
+10. Register the instance in your guardrail-hub config — with `subdir = "..."`
+    if this is a monorepo component — so the dashboard picks it up.
+"""
 
-def _files_to_apply(with_tool_catalog: bool, with_containers: bool) -> list[KitFile]:
+
+def _files_to_apply(language: str, with_tool_catalog: bool, with_containers: bool) -> list[KitFile]:
     wanted_roles = {"core", "doc"}
+    if language == "cpp":
+        wanted_roles.add("adapter-cpp")
     if with_tool_catalog:
         wanted_roles.add("adapter-tool-catalog")
     if with_containers:
@@ -247,19 +295,33 @@ def apply_kit(
     target: Path,
     *,
     root_package: str | None = None,
+    language: str = "python",
     with_tool_catalog: bool = False,
     with_containers: bool = False,
 ) -> str:
     """Port the kit into ``target``; returns the human report. Never edits files."""
+    if language not in ("python", "cpp"):
+        raise KitError(f"unsupported language {language!r} (expected 'python' or 'cpp')")
     if not target.is_dir():
         raise KitError(f"target {target} is not a directory")
-    if not (target / ".git").exists():
+    # rev-parse (not a .git-dir check) so a monorepo subdir counts as a target.
+    if not gitio.is_git_repo(target):
         raise KitError(f"target {target} is not a git repository")
-    pyproject = _load_pyproject(target)
-    package = _detect_root_package(pyproject, root_package)
-    src_layout = _detect_src_layout(target, package)
+    if language == "cpp":
+        if not root_package:
+            raise KitError(
+                "--root-package is required for --language cpp "
+                "(there is no pyproject.toml to detect it from)"
+            )
+        pyproject: dict[str, Any] = {}
+        package = root_package
+        src_layout = _detect_cpp_src_layout(target)
+    else:
+        pyproject = _load_pyproject(target)
+        package = _detect_root_package(pyproject, root_package)
+        src_layout = _detect_src_layout(target, package)
 
-    kit_files = _files_to_apply(with_tool_catalog, with_containers)
+    kit_files = _files_to_apply(language, with_tool_catalog, with_containers)
     destinations = [f.path for f in kit_files] + [ARCHITECTURE_TOML, VERSION_FILE]
     conflicts = sorted(d for d in destinations if (target / d).exists())
     if conflicts:
@@ -268,7 +330,7 @@ def apply_kit(
             + "\n  ".join(conflicts)
         )
 
-    skeleton = build_architecture_skeleton(pyproject, package, src_layout)
+    skeleton = build_architecture_skeleton(pyproject, package, src_layout, language)
     for kit_file in kit_files:
         dest = target / kit_file.path
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -283,9 +345,10 @@ def apply_kit(
         for enabled, name in ((with_tool_catalog, "tool-catalog"), (with_containers, "containers"))
         if enabled
     ]
+    checklist = _CHECKLIST_CPP if language == "cpp" else _CHECKLIST
     return (
         f"Applied guardrail kit {kit_version()} to {target}\n"
-        f"root_package = {package!r}, src_layout = {src_layout!r}, "
+        f"language = {language!r}, root_package = {package!r}, src_layout = {src_layout!r}, "
         f"adapters = {adapters or 'none'}\n\n"
         "Files written:\n" + "\n".join(f"  {p}" for p in written) + "\n\n"
         "── Makefile targets to add "
@@ -293,5 +356,5 @@ def apply_kit(
         "── CI job to add (.github/workflows/ci.yml) "
         "─────────────────────────\n" + _CI_SNIPPET + "\n"
         "── Port checklist "
-        "───────────────────────────────────────────────────\n" + _CHECKLIST
+        "───────────────────────────────────────────────────\n" + checklist
     )
