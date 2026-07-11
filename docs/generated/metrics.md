@@ -13,9 +13,11 @@ lower a budget after improving the code to lock in the gain.
 |---|---:|---:|---:|
 | `component_cycles` | 0 | 0 | 0 |
 | `cross_component_edges` | 37 | 37 | 0 |
-| `max_module_lines` | 361 | 800 | 439 |
+| `cross_module_private_refs` | 0 | 0 | 0 |
+| `max_module_lines` | 363 | 800 | 437 |
 | `module_cycles` | 0 | 0 | 0 |
 | `modules_over_800_lines` | 0 | 0 | 0 |
+| `tests_private_imports` | 0 | 0 | 0 |
 
 ## Import graph
 
@@ -32,7 +34,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 | Component | Modules | Lines | SLOC | Fan-in | Fan-out | Instability | Max complexity | Functions > 10 |
 |---|---:|---:|---:|---:|---:|---:|---|---:|
-| Budgets | 1 | 69 | 58 | 1 | 1 | 0.50 | 7 (`guardrail_hub.budgets.budget_statuses`) | 0 |
+| Budgets | 1 | 71 | 60 | 1 | 1 | 0.50 | 7 (`guardrail_hub.budgets.budget_statuses`) | 0 |
 | Cli | 2 | 135 | 106 | 0 | 6 | 1.00 | 19 (`guardrail_hub.cli._cmd_drift`) | 1 |
 | Config | 1 | 211 | 164 | 3 | 2 | 0.40 | 7 (`guardrail_hub.config._parse_repos`) | 0 |
 | DocsRender | 1 | 95 | 72 | 1 | 0 | 0.00 | 6 (`guardrail_hub.docs_render._make_parser._rewrite_links`) | 0 |
@@ -40,18 +42,18 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Errors | 1 | 23 | 13 | 8 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 85 | 63 | 4 | 1 | 0.20 | 5 (`guardrail_hub.gitio._git`) | 0 |
 | History | 3 | 217 | 174 | 2 | 3 | 0.60 | 7 (`guardrail_hub.budget_ledger.mine_ledger`) | 0 |
-| Installer | 1 | 361 | 298 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
+| Installer | 1 | 363 | 300 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
 | Models | 1 | 158 | 119 | 7 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
 | RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
 | Store | 1 | 120 | 100 | 1 | 6 | 0.86 | 6 (`guardrail_hub.store.RepoStore.history`) | 0 |
-| Web | 1 | 299 | 266 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
+| Web | 1 | 302 | 269 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
 
 ## Size
 
-- Modules: **19**, lines: **2228**, SLOC: **1815**
-- Largest module: `guardrail_hub.installer` (361 lines)
+- Modules: **19**, lines: **2235**, SLOC: **1822**
+- Largest module: `guardrail_hub.installer` (363 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
@@ -73,7 +75,15 @@ Top 10 most complex functions:
 | 8 | `guardrail_hub.repo_scan.scan` |
 | 7 | `guardrail_hub.budget_ledger.mine_ledger` |
 
+## Seams
+
+Private-name reaches across module seams. Both counts can be pinned as
+`[budgets]` ratchets (`cross_module_private_refs`, `tests_private_imports`).
+
+- Cross-module private refs (src): **0**
+- Tests importing src privates: **0**
+
 ## Domain & tests
 
 - Domain models: **10** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.90** (4230 test lines / 2228 source lines)
+- Test-to-source line ratio: **2.14** (4785 test lines / 2235 source lines)

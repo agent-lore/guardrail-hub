@@ -24,6 +24,7 @@ from typing import Any
 
 import networkx as nx
 from tests.guardrail import _diagram_toolkit as dt
+from tests.guardrail import _private_access
 from tests.guardrail._common import (
     CPP_SUFFIXES,
     LANGUAGE,
@@ -407,6 +408,7 @@ def compute_metrics() -> dict[str, Any]:
         "graph": _graph_metrics(components, tiers),
         "mcp": _mcp_metrics(),
         "schema": _SCHEMA_VERSION,
+        "seams": _private_access.seams_metrics(),
         "size": size,
         "tests": _test_metrics(size["total_lines"]),
     }
@@ -418,8 +420,10 @@ def budget_actual(metrics: dict[str, Any], key: str) -> int:
         "component_cycles": len(metrics["graph"]["component_cycles"]),
         "cross_component_edges": metrics["graph"]["cross_component_edges"],
         "cross_component_module_edges": metrics["graph"]["cross_component_module_edges"],
+        "cross_module_private_refs": metrics["seams"]["cross_module_private_refs"],
         "max_module_lines": metrics["size"]["max_module_lines"],
         "module_cycles": metrics["graph"]["module_cycle_count"],
         "modules_over_800_lines": len(metrics["size"]["modules_over_800"]),
+        "tests_private_imports": metrics["seams"]["tests_private_imports"],
     }
     return actuals[key]

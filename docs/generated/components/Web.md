@@ -11,7 +11,7 @@ FastAPI dashboard: overview, repo detail, doc viewer, compare, drift panel.
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.web` | S | 0 | 2 |
+| `guardrail_hub.web` | M | 0 | 2 |
 
 ## Public API
 

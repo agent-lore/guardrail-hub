@@ -118,6 +118,9 @@ def test_metrics_merge_pairs_and_language_sections(cpp_project: Path) -> None:
     # every module-level edge is unique here, so the weighted count matches
     assert metrics["graph"]["cross_component_module_edges"] == 4
     assert metrics["domain"]["models"] == 0
+    # the seams scan is python-only; cpp instances carry the zeroed section
+    assert metrics["seams"]["cross_module_private_refs"] == 0
+    assert metrics["seams"]["tests_private_detail"] == []
     assert metrics["size"]["components"]["Core"]["modules"] == 1
     # complexity comes from lizard for cpp: Engine::run + main are the only
     # function DEFINITIONS (log.h holds a declaration, which lizard skips)

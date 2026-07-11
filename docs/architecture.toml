@@ -81,6 +81,8 @@ component_cycles       = 0    # no component-level cycles today; keep it that wa
 module_cycles          = 0    # no module-level cycles today; keep it that way
 modules_over_800_lines = 0    # no god modules today; keep it that way
 max_module_lines       = 800  # stop-loss at the god-module threshold; largest today is installer (297)
+cross_module_private_refs = 0  # no cross-module private reaches today; keep it that way
+tests_private_imports     = 0  # tests use only the public surface; keep it that way
 
 # Domain class diagram: the shared value types. Settings models (config) and
 # the kit-manifest working type (kit.KitFile) are not domain entities, so

@@ -24,6 +24,8 @@ def test_actual_extraction() -> None:
     assert budget_actual(metrics, "modules_over_800_lines") == 0
     assert budget_actual(metrics, "max_module_lines") == 200
     assert budget_actual(metrics, "module_cycles") == 0
+    assert budget_actual(metrics, "cross_module_private_refs") == 2
+    assert budget_actual(metrics, "tests_private_imports") == 1
 
 
 def test_unknown_key_is_none() -> None:

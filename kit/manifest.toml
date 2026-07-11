@@ -41,6 +41,10 @@ path = "tests/guardrail/_metrics_toolkit.py"
 role = "core"
 
 [[files]]
+path = "tests/guardrail/_private_access.py"
+role = "core"
+
+[[files]]
 path = "tests/guardrail/test_architecture_diagram.py"
 role = "core"
 

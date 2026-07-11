@@ -16,9 +16,11 @@ _ACTUALS: dict[str, Callable[[Mapping[str, Any]], int]] = {
     "component_cycles": lambda m: len(m["graph"]["component_cycles"]),
     "cross_component_edges": lambda m: m["graph"]["cross_component_edges"],
     "cross_component_module_edges": lambda m: m["graph"]["cross_component_module_edges"],
+    "cross_module_private_refs": lambda m: m["seams"]["cross_module_private_refs"],
     "max_module_lines": lambda m: m["size"]["max_module_lines"],
     "module_cycles": lambda m: m["graph"]["module_cycle_count"],
     "modules_over_800_lines": lambda m: len(m["size"]["modules_over_800"]),
+    "tests_private_imports": lambda m: m["seams"]["tests_private_imports"],
 }
 
 

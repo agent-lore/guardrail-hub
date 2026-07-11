@@ -43,6 +43,8 @@ TREND_KEYS = [
     "size.max_module_lines",
     "size.total_sloc",
     "complexity.functions_over_10",
+    "seams.cross_module_private_refs",
+    "seams.tests_private_imports",
     "tests.ratio",
 ]
 
@@ -56,6 +58,7 @@ COMPARE_ROWS = [
     ("size.max_module_lines", "Largest module (lines)"),
     ("size.modules_over_800.count", "Modules > 800 lines"),
     ("complexity.functions_over_10", "Functions cx > 10"),
+    ("seams.cross_module_private_refs", "Private-access refs"),
     ("domain.models", "Domain models"),
     ("tests.ratio", "Test/src ratio"),
     ("mcp.tools", "MCP tools"),

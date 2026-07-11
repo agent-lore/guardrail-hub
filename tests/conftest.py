@@ -52,6 +52,12 @@ _METRICS_TEMPLATE: dict[str, Any] = {
         "top_functions": [],
     },
     "domain": {"models": 4, "associations": 2, "models_without_docstrings": 0},
+    "seams": {
+        "cross_module_private_refs": 2,
+        "cross_module_private_detail": ["fixture.web -> fixture.core._load (x2)"],
+        "tests_private_imports": 1,
+        "tests_private_detail": ["tests/test_core.py -> fixture.core._load"],
+    },
     "tests": {"src_lines": 300, "test_lines": 300, "ratio": 1.0},
 }
 

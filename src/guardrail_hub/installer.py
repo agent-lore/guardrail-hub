@@ -160,6 +160,8 @@ def build_architecture_skeleton(
         "# module_cycles          = TODO",
         "# modules_over_800_lines = TODO",
         "# max_module_lines       = TODO  # stop-loss, a little above today's largest module",
+        "# cross_module_private_refs = TODO  # python-only seam ratchet; goal: 0",
+        "# tests_private_imports     = TODO  # python-only seam ratchet; goal: 0",
     ]
     skeleton = template.format(
         kit_version=kit_version(),
