@@ -19,6 +19,11 @@ output for identical input:
   the first suspect.
 - **No wall-clock, git sha, absolute path, hostname, or env-dependent data** in
   any artifact. Round ratios; `json.dumps(..., indent=2, sort_keys=True)`.
+- **No implicit string concatenation** when splitting a long string for line
+  width — GitHub code quality flags it (it reads as a missing comma in lists).
+  Join the pieces with explicit `+` (plain prefix on placeholder-less pieces);
+  the hub's drift normalizer folds `+`-joined plain and f-string pieces, so
+  this never registers as kit drift.
 - Determinism is tested (e.g. `test_metrics_snapshot` renders twice and asserts
   byte-equality). Keep those tests passing.
 

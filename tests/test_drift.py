@@ -240,3 +240,21 @@ def test_subdir_entry_compares_kit_under_subdir(tmp_path: Path) -> None:
     assert all(f.status in ("same", "extra") for f in report.files), [
         (f.path, f.status) for f in report.files if f.status not in ("same", "extra")
     ]
+
+
+def test_fstring_plus_concat_folds_to_implicit() -> None:
+    """+-joined f-string pieces normalize to the canonical single literal."""
+    canonical = "x = f\"- Tier subgraphs ({' / '.join(names)}): dependencies must only\"\n"
+    split = (
+        "x = (\n"
+        "    f\"- Tier subgraphs ({' / '.join(names)})\"\n"
+        '    + ": dependencies must only"\n'
+        ")\n"
+    )
+    assert normalized_ast_dump(canonical) == normalized_ast_dump(split)
+
+
+def test_plain_plus_fstring_mix_folds() -> None:
+    canonical = 'x = "a " f"{y} b"\n'
+    split = 'x = "a " + f"{y}" + " b"\n'
+    assert normalized_ast_dump(canonical) == normalized_ast_dump(split)

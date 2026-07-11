@@ -36,7 +36,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Cli | 2 | 135 | 106 | 0 | 6 | 1.00 | 19 (`guardrail_hub.cli._cmd_drift`) | 1 |
 | Config | 1 | 211 | 164 | 3 | 2 | 0.40 | 7 (`guardrail_hub.config._parse_repos`) | 0 |
 | DocsRender | 1 | 95 | 72 | 1 | 0 | 0.00 | 6 (`guardrail_hub.docs_render._make_parser._rewrite_links`) | 0 |
-| Drift | 1 | 192 | 162 | 2 | 2 | 0.50 | 10 (`guardrail_hub.drift._extras`) | 0 |
+| Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
 | Errors | 1 | 23 | 13 | 8 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 85 | 63 | 4 | 1 | 0.20 | 5 (`guardrail_hub.gitio._git`) | 0 |
 | History | 1 | 75 | 60 | 2 | 3 | 0.60 | 6 (`guardrail_hub.history.extract`) | 0 |
@@ -50,13 +50,13 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 ## Size
 
-- Modules: **17**, lines: **1978**, SLOC: **1604**
+- Modules: **17**, lines: **2001**, SLOC: **1625**
 - Largest module: `guardrail_hub.installer` (361 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
-- Functions: **102**, cyclomatic > 10: **3**
+- Functions: **103**, cyclomatic > 10: **4**
 
 Top 10 most complex functions:
 
@@ -65,15 +65,15 @@ Top 10 most complex functions:
 | 19 | `guardrail_hub.cli._cmd_drift` |
 | 16 | `guardrail_hub.installer.apply_kit` |
 | 14 | `guardrail_hub.installer._tiers_from_importlinter` |
+| 12 | `guardrail_hub.drift._FoldStringConcat.visit_BinOp` |
 | 10 | `guardrail_hub.drift._extras` |
 | 10 | `guardrail_hub.installer.build_architecture_skeleton` |
 | 10 | `guardrail_hub.kit.load_manifest` |
 | 9 | `guardrail_hub.drift._strip_docstrings` |
 | 8 | `guardrail_hub.repo_scan.scan` |
 | 7 | `guardrail_hub.budgets.budget_statuses` |
-| 7 | `guardrail_hub.config._parse_repos` |
 
 ## Domain & tests
 
 - Domain models: **8** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **2.03** (4016 test lines / 1978 source lines)
+- Test-to-source line ratio: **2.02** (4034 test lines / 2001 source lines)

@@ -80,6 +80,14 @@ never patch the applied files.
    repos in tmp dirs (`tests/conftest.py::make_repo`).
 7. Timestamps/randomness stay out of generated artifacts (the kit's
    determinism contract applies to the hub's own docs/generated/ too).
+8. **NEVER use implicit string concatenation** when splitting a long string
+   (in kit code or when reflowing kit files for an 88-width port) — GitHub
+   code quality flags it (especially inside lists, where it looks like a
+   missing comma) and has complained on TWO adoption waves now. Use explicit
+   `+` between the pieces; a placeholder-less piece must be a plain string,
+   not an `f`-string (ruff F541). The drift engine's `_FoldStringConcat`
+   normalizes `+`-joined plain AND f-string pieces back to the canonical
+   literal, so explicit `+` never shows as drift.
 
 ## Architecture guardrails & generated docs
 

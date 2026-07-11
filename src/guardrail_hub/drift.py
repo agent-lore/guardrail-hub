@@ -44,25 +44,48 @@ def _strip_docstrings(tree: ast.Module) -> None:
                 body.append(ast.Pass())
 
 
-class _FoldStringConcat(ast.NodeTransformer):
-    """Fold ``"a" + "b"`` into ``"ab"``.
+def _string_parts(node: ast.expr) -> list[ast.expr] | None:
+    """The concatenable pieces of a string-ish node (None = not a string)."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return [node]
+    if isinstance(node, ast.JoinedStr):
+        return list(node.values)
+    return None
 
-    Splitting a long literal into explicitly ``+``-joined parts (the 88-width
-    ports did this to satisfy a code-quality check) is a formatting decision,
-    not logic drift — normalize it away like whitespace.
+
+class _FoldStringConcat(ast.NodeTransformer):
+    """Fold ``"a" + "b"`` (and the f-string equivalents) into one literal.
+
+    Splitting a long literal into explicitly ``+``-joined parts is how the
+    88-width ports satisfy both their line length and GitHub code quality's
+    implicit-concatenation-in-a-list rule — a formatting decision, not logic
+    drift, so normalize it away like whitespace. Adjacent constant pieces are
+    merged exactly the way CPython's parser merges implicitly concatenated
+    literals, so the fold reproduces the canonical AST byte-for-byte.
     """
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.AST:
         self.generic_visit(node)
-        if (
-            isinstance(node.op, ast.Add)
-            and isinstance(node.left, ast.Constant)
-            and isinstance(node.left.value, str)
-            and isinstance(node.right, ast.Constant)
-            and isinstance(node.right.value, str)
-        ):
-            return ast.copy_location(ast.Constant(node.left.value + node.right.value), node)
-        return node
+        if not isinstance(node.op, ast.Add):
+            return node
+        left, right = _string_parts(node.left), _string_parts(node.right)
+        if left is None or right is None:
+            return node
+        merged: list[ast.expr] = []
+        for part in left + right:
+            if (
+                merged
+                and isinstance(part, ast.Constant)
+                and isinstance(part.value, str)
+                and isinstance(merged[-1], ast.Constant)
+                and isinstance(merged[-1].value, str)
+            ):
+                merged[-1] = ast.copy_location(ast.Constant(merged[-1].value + part.value), part)
+            else:
+                merged.append(part)
+        if len(merged) == 1 and isinstance(merged[0], ast.Constant):
+            return ast.copy_location(merged[0], node)
+        return ast.copy_location(ast.JoinedStr(values=merged), node)
 
 
 def normalized_ast_dump(source: str) -> str:
