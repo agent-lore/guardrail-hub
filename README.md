@@ -15,7 +15,9 @@ Two jobs:
    views (domain model, complexity) omitted or zeroed.
 2. **Dashboard** — `guardrail-hub serve` reads your locally checked-out repos
    (registered in an XDG config) and serves metric trends, cross-repo
-   comparisons, budget traffic-lights, rendered diagrams, and a kit-drift panel.
+   comparisons, budget traffic-lights, rendered diagrams, a kit-drift panel,
+   per-repo hotspots (mainline churn x complexity), and a fleet-wide budget
+   ledger (every ratchet raise/lower, mined from architecture.toml history).
    Monorepos register one entry per kit instance via `subdir` (see
    `config.example.toml`).
 

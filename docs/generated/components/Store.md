@@ -11,7 +11,7 @@ In-process cache over the scanners, keyed on checkout state (HEAD sha + mtimes).
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.store` | XS | 1 | 0 |
+| `guardrail_hub.store` | S | 1 | 0 |
 
 ## Public API
 

@@ -12,10 +12,10 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 
-from guardrail_hub import gitio, history, repo_scan
+from guardrail_hub import budget_ledger, gitio, history, repo_scan
 from guardrail_hub.config import HubConfig
 from guardrail_hub.errors import RepoAccessError
-from guardrail_hub.models import MetricPoint, RepoEntry, RepoSnapshot
+from guardrail_hub.models import BudgetEvent, MetricPoint, RepoEntry, RepoSnapshot
 
 _SnapshotKey = tuple[str, float, float]
 
@@ -47,6 +47,7 @@ class RepoStore:
         self._lock = threading.Lock()
         self._snapshots: dict[str, tuple[_SnapshotKey, RepoSnapshot]] = {}
         self._histories: dict[str, tuple[str, tuple[MetricPoint, ...]]] = {}
+        self._ledgers: dict[str, tuple[str, tuple[BudgetEvent, ...]]] = {}
 
     @property
     def entries(self) -> tuple[RepoEntry, ...]:
@@ -85,15 +86,35 @@ class RepoStore:
             self._histories[entry.name] = (tip, points)
         return points
 
+    def ledger(self, entry: RepoEntry) -> tuple[BudgetEvent, ...]:
+        """Budget-change events from the default branch, cached by tip sha."""
+        try:
+            tip = gitio.branch_tip(entry.path, entry.default_branch) or gitio.head_sha(entry.path)
+        except RepoAccessError:
+            return ()
+        with self._lock:
+            cached = self._ledgers.get(entry.name)
+            if cached is not None and cached[0] == tip:
+                return cached[1]
+        try:
+            events = budget_ledger.mine_ledger(entry, tip)
+        except RepoAccessError:
+            events = ()
+        with self._lock:
+            self._ledgers[entry.name] = (tip, events)
+        return events
+
     def refresh(self, name: str | None = None) -> None:
         """Forget cached state (one repo, or everything) so next access re-reads disk."""
         with self._lock:
             if name is None:
                 self._snapshots.clear()
                 self._histories.clear()
+                self._ledgers.clear()
             else:
                 self._snapshots.pop(name, None)
                 self._histories.pop(name, None)
+                self._ledgers.pop(name, None)
 
 
 StoreFactory = Callable[[HubConfig], RepoStore]

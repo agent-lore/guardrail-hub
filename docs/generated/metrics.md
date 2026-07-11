@@ -19,7 +19,7 @@ lower a budget after improving the code to lock in the gain.
 
 ## Import graph
 
-- Cross-component edges: **37** (37 module-level)
+- Cross-component edges: **37** (44 module-level)
 - Component cycles: none
 - Module cycles: none
 - Tier-skipping edges (Entrypoints → Foundation): 5 (Cli -> Config, Cli -> Errors, Web -> Config, Web -> Logging, Web -> Models)
@@ -39,24 +39,24 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
 | Errors | 1 | 23 | 13 | 8 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 85 | 63 | 4 | 1 | 0.20 | 5 (`guardrail_hub.gitio._git`) | 0 |
-| History | 1 | 75 | 60 | 2 | 3 | 0.60 | 6 (`guardrail_hub.history.extract`) | 0 |
+| History | 3 | 217 | 174 | 2 | 3 | 0.60 | 7 (`guardrail_hub.budget_ledger.mine_ledger`) | 0 |
 | Installer | 1 | 361 | 298 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
-| Models | 1 | 127 | 95 | 7 | 0 | 0.00 | 2 (`guardrail_hub.models.DriftReport.clean`) | 0 |
+| Models | 1 | 158 | 119 | 7 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
 | RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
-| Store | 1 | 99 | 80 | 1 | 6 | 0.86 | 6 (`guardrail_hub.store.RepoStore.history`) | 0 |
-| Web | 1 | 266 | 234 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.repo_file`) | 0 |
+| Store | 1 | 120 | 100 | 1 | 6 | 0.86 | 6 (`guardrail_hub.store.RepoStore.history`) | 0 |
+| Web | 1 | 299 | 266 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
 
 ## Size
 
-- Modules: **17**, lines: **2001**, SLOC: **1625**
+- Modules: **19**, lines: **2228**, SLOC: **1815**
 - Largest module: `guardrail_hub.installer` (361 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
-- Functions: **103**, cyclomatic > 10: **4**
+- Functions: **112**, cyclomatic > 10: **4**
 
 Top 10 most complex functions:
 
@@ -71,9 +71,9 @@ Top 10 most complex functions:
 | 10 | `guardrail_hub.kit.load_manifest` |
 | 9 | `guardrail_hub.drift._strip_docstrings` |
 | 8 | `guardrail_hub.repo_scan.scan` |
-| 7 | `guardrail_hub.budgets.budget_statuses` |
+| 7 | `guardrail_hub.budget_ledger.mine_ledger` |
 
 ## Domain & tests
 
-- Domain models: **8** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **2.02** (4034 test lines / 2001 source lines)
+- Domain models: **10** (5 associations, 0 without docstrings)
+- Test-to-source line ratio: **1.89** (4215 test lines / 2228 source lines)

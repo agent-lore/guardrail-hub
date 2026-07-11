@@ -17,6 +17,7 @@
         <a class="{{ 'active' if active_view == 'overview' else '' }}" href="/">Repos</a>
         <a class="{{ 'active' if active_view == 'compare' else '' }}" href="/compare">Compare</a>
         <a class="{{ 'active' if active_view == 'drift' else '' }}" href="/drift">Kit drift</a>
+        <a class="{{ 'active' if active_view == 'ledger' else '' }}" href="/ledger">Ledger</a>
         <form class="refresh-form" method="post" action="/refresh">
           <button type="submit" title="Re-read all checkouts from disk">Refresh</button>
         </form>

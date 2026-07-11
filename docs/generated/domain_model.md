@@ -7,12 +7,27 @@
 
 ```mermaid
 classDiagram
+  class BudgetEvent {
+    +key str
+    +old int | None
+    +new int | None
+    +sha str
+    +date datetime.date
+  }
   class BudgetStatus {
     +key str
     +budget int
     +actual int | None
     +headroom int | None
     +level BudgetLevel
+  }
+  class ComponentHotspot {
+    +name str
+    +churn_lines int
+    +lines int
+    +max_complexity int
+    +functions_over_10 int
+    +score int
   }
   class ComponentRow {
     +name str

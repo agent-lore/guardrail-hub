@@ -473,3 +473,28 @@ h1 {
 .doc-list li {
   margin-bottom: 0.35rem;
 }
+
+/* Budget-ledger event badges (mirrors the traffic-light chips). */
+.event {
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.event-raise {
+  background: var(--warning-bg);
+  color: var(--warning-border);
+}
+
+.event-lower {
+  background: #e2efe6;
+  color: var(--ok);
+}
+
+.event-added,
+.event-removed {
+  background: #ece7dc;
+  color: var(--muted);
+}

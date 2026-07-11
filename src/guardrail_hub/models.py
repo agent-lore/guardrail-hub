@@ -104,6 +104,37 @@ class RepoSnapshot:
 
 
 @dataclass(frozen=True)
+class ComponentHotspot:
+    """Where structural churn concentrates: mainline line-churn x complexity."""
+
+    name: str
+    churn_lines: int
+    lines: int
+    max_complexity: int
+    functions_over_10: int
+    score: int
+
+
+@dataclass(frozen=True)
+class BudgetEvent:
+    """One change to a [budgets] value in a repo's architecture.toml history."""
+
+    key: str
+    old: int | None
+    new: int | None
+    sha: str
+    date: datetime.date
+
+    @property
+    def kind(self) -> Literal["raise", "lower", "added", "removed"]:
+        if self.old is None:
+            return "added"
+        if self.new is None:
+            return "removed"
+        return "raise" if self.new > self.old else "lower"
+
+
+@dataclass(frozen=True)
 class FileDrift:
     """Drift verdict for one kit file in one repo."""
 

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Budget ledger — Guardrail Hub{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">fleet</p>
+  <h1>Budget ledger</h1>
+  <p class="muted">Every change to a <code>[budgets]</code> ratchet across the fleet.
+    Raises are deliberate, reviewed trade-offs — a key that keeps rising is a weak
+    ratchet; a falling one is locked-in improvement.</p>
+</section>
+
+{% if raises %}
+<section class="panel">
+  <h2>Raises per key <span class="muted">(the weak-ratchet signal)</span></h2>
+  <table class="data-table">
+    <thead>
+      <tr><th>Repo</th><th>Key</th><th class="num">Raises</th></tr>
+    </thead>
+    <tbody>
+      {% for repo, key, count in raises %}
+      <tr>
+        <td><a href="/repos/{{ repo }}">{{ repo }}</a></td>
+        <td><code>{{ key }}</code></td>
+        <td class="num"><strong>{{ count }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>All changes <span class="muted">(newest first)</span></h2>
+  {% if not events %}
+  <p class="muted">No budget changes recorded yet — every repo is still on the
+    budgets it adopted with.</p>
+  {% else %}
+  <table class="data-table">
+    <thead>
+      <tr><th>Date</th><th>Repo</th><th>Key</th><th>Change</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for entry, e in events %}
+      <tr>
+        <td>{{ e.date.isoformat() }} <span class="muted">{{ e.sha | short }}</span></td>
+        <td><a href="/repos/{{ entry.name }}">{{ entry.name }}</a></td>
+        <td><code>{{ e.key }}</code></td>
+        <td class="num">{{ e.old if e.old is not none else "—" }} → {{ e.new if e.new is not none else "—" }}</td>
+        <td><span class="event event-{{ e.kind }}">{{ e.kind }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

@@ -17,12 +17,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from guardrail_hub import docs_render
+from guardrail_hub.budget_ledger import raise_counts
 from guardrail_hub.config import HubConfig, load_config
 from guardrail_hub.drift import compare_repo
 from guardrail_hub.history import extract, series
+from guardrail_hub.hotspots import component_hotspots
 from guardrail_hub.kit import kit_version
 from guardrail_hub.logging_setup import configure_logging
-from guardrail_hub.models import DriftReport, RepoEntry, RepoSnapshot
+from guardrail_hub.models import BudgetEvent, DriftReport, RepoEntry, RepoSnapshot
 from guardrail_hub.store import RepoStore, StoreFactory
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -125,6 +127,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
         snapshot = await asyncio.to_thread(store.snapshot, entry)
         points = await asyncio.to_thread(store.history, entry)
         drift = await asyncio.to_thread(compare_repo, entry)
+        ledger = await asyncio.to_thread(store.ledger, entry)
         return templates.TemplateResponse(
             request,
             "repo.html",
@@ -135,6 +138,8 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                 "drift": drift,
                 "trend_keys": TREND_KEYS,
                 "extract": extract,
+                "hotspots": component_hotspots(points)[:10],
+                "ledger": list(reversed(ledger))[:10],
             },
         )
 
@@ -224,6 +229,34 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                 "values": data["series"][key],
             }
         return JSONResponse({"key": key, "repos": payload})
+
+    @app.get("/ledger", response_class=HTMLResponse)
+    async def ledger_panel(request: Request) -> HTMLResponse:
+        ledgers: list[tuple[RepoEntry, tuple[BudgetEvent, ...]]] = list(
+            zip(
+                store.entries,
+                await asyncio.gather(*(asyncio.to_thread(store.ledger, e) for e in store.entries)),
+                strict=True,
+            )
+        )
+        events = sorted(
+            ((entry, event) for entry, entry_events in ledgers for event in entry_events),
+            key=lambda pair: (pair[1].date, pair[1].sha),
+            reverse=True,
+        )
+        raises = sorted(
+            (
+                (entry.name, key, count)
+                for entry, entry_events in ledgers
+                for key, count in raise_counts(entry_events).items()
+            ),
+            key=lambda row: (-row[2], row[0], row[1]),
+        )
+        return templates.TemplateResponse(
+            request,
+            "ledger.html",
+            {"active_view": "ledger", "events": events, "raises": raises},
+        )
 
     @app.get("/drift", response_class=HTMLResponse)
     async def drift_panel(request: Request) -> HTMLResponse:

@@ -62,6 +62,51 @@
 </section>
 {% endif %}
 
+{% if hotspots and history_count >= 2 %}
+<section class="panel">
+  <h2>Hotspots <span class="muted">(mainline churn × current complexity)</span></h2>
+  <table class="data-table">
+    <thead>
+      <tr><th>Component</th><th class="num">Churn (lines)</th><th class="num">Lines now</th>
+          <th class="num">Max cx</th><th class="num">Fns &gt; 10</th><th class="num">Score</th></tr>
+    </thead>
+    <tbody>
+      {% for h in hotspots %}
+      <tr>
+        <td><a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ h.name }}.md">{{ h.name }}</a></td>
+        <td class="num">{{ h.churn_lines }}</td>
+        <td class="num">{{ h.lines }}</td>
+        <td class="num">{{ h.max_complexity }}</td>
+        <td class="num">{{ h.functions_over_10 }}</td>
+        <td class="num"><strong>{{ h.score }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if ledger %}
+<section class="panel">
+  <h2>Budget ledger <span class="muted">(latest changes on {{ snapshot.entry.default_branch }})</span></h2>
+  <table class="data-table">
+    <thead>
+      <tr><th>Date</th><th>Key</th><th>Change</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for e in ledger %}
+      <tr>
+        <td>{{ e.date.isoformat() }} <span class="muted">{{ e.sha | short }}</span></td>
+        <td><code>{{ e.key }}</code></td>
+        <td class="num">{{ e.old if e.old is not none else "—" }} → {{ e.new if e.new is not none else "—" }}</td>
+        <td><span class="event event-{{ e.kind }}">{{ e.kind }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
 {% if snapshot.docs %}
 <section class="panel">
   <h2>Generated docs</h2>

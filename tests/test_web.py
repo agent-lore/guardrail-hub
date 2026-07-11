@@ -157,3 +157,19 @@ def test_refresh_redirects_and_picks_up_changes(client: TestClient, tmp_path: Pa
 def test_repo_refresh(client: TestClient) -> None:
     assert client.post("/repos/fixture/refresh", follow_redirects=False).status_code == 303
     assert client.post("/repos/nope/refresh", follow_redirects=False).status_code == 404
+
+
+def test_repo_page_shows_hotspots_and_ledger_sections(client: TestClient) -> None:
+    # the fixture has two snapshots -> hotspots render; no budget edits -> ledger hidden
+    page = client.get("/repos/fixture").text
+    assert "Hotspots" in page
+    assert "Core" in page
+    assert "Budget ledger" not in page
+
+
+def test_ledger_page_renders(client: TestClient) -> None:
+    page = client.get("/ledger")
+    assert page.status_code == 200
+    assert "Budget ledger" in page.text
+    # fixture repos have no budget changes -> the empty state shows
+    assert "No budget changes recorded yet" in page.text

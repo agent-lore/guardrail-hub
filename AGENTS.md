@@ -18,7 +18,10 @@ Two jobs, two surfaces:
    via the config's `subdir` field.
 2. **Dashboard** — `guardrail-hub serve` renders repo cards, budget
    traffic-lights, metric trends (mined from each repo's committed
-   `metrics.json` git history), Mermaid diagrams, and the drift panel.
+   `metrics.json` git history), Mermaid diagrams, the drift panel, per-repo
+   hotspots (mainline churn x current complexity), and the fleet-wide budget
+   ledger (`/ledger` — every ratchet raise/lower mined from
+   `architecture.toml` history; frequent raises mark weak ratchets).
 
 ## Done Criteria (all must be green)
 
@@ -53,7 +56,8 @@ Strict src layout, flat modules in three layers (import-linter enforced):
 - **Foundation**: `errors`, `models` (frozen value types), `config` (XDG
   discovery + env overrides), `logging_setup`
 - **Core**: `gitio` (the ONE git subprocess seam), `repo_scan` (worktree →
-  RepoSnapshot), `budgets`, `history` (first-parent metrics.json mining),
+  RepoSnapshot), `budgets`, `history` (first-parent metrics.json mining), `hotspots` (churn x
+  complexity over the mined series), `budget_ledger` ([budgets] change events),
   `store` (cache keyed on HEAD sha + mtimes), `docs_render` (markdown-it +
   mermaid fences + escape-link rewriting), `drift` (normalized AST compare),
   `kit` (canon access), `installer`
