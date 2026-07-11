@@ -26,6 +26,15 @@ class Artifact:
     description: str  # one line, CONTEXT.md vocabulary
 
 
+def _tier_names(arch: dict) -> list[str]:
+    """Declared tier names, top-down — the repo's own architecture vocabulary.
+
+    Falls back to the kit's conventional trio so prose stays stable for a
+    project that has not declared [tiers] yet.
+    """
+    return list(arch.get("tiers", {})) or ["Entrypoints", "Core", "Foundation"]
+
+
 def component_page_paths() -> list[str]:
     """Per-component drill-down pages (one per [components] entry)."""
     return [f"components/{c}.md" for c in sorted(load_architecture()["components"])]
@@ -56,7 +65,7 @@ def artifacts(arch: dict | None = None) -> list[Artifact]:
         Artifact(
             path="architecture.md",
             title="Component dependencies",
-            description=f"{graph_desc}, grouped by tier (Entrypoints → Core → Foundation).",
+            description=f"{graph_desc}, grouped by tier ({' → '.join(_tier_names(arch))}).",
         ),
     ]
     if language == "python":
@@ -184,16 +193,17 @@ def render_index(arch: dict | None = None) -> str:
         if LANGUAGE == "cpp"
         else "  point downward; enforced by import-linter (`pyproject.toml [tool.importlinter]`)."
     )
+    tier_names = _tier_names(arch)
     lines += [
         "",
         "## Legend",
         "",
         f"- `A --> B` in the component diagram: at least one real {dep_word} from a module",
         "  in component A to a module in component B.",
-        "- Tier subgraphs (Entrypoints / Core / Foundation): dependencies must only",
+        f"- Tier subgraphs ({' / '.join(tier_names)}): dependencies must only",
         enforced_by,
-        "- Dashed grey edge: a tier-skipping dependency (e.g. Entrypoints → Foundation).",
-        "  Grey edge: a dependency on a Foundation component (de-emphasized fan-in).",
+        f"- Dashed grey edge: a tier-skipping dependency (e.g. {tier_names[0]} → {tier_names[-1]}).",
+        f"  Grey edge: a dependency on a {tier_names[-1]} component (de-emphasized fan-in).",
         "- Component nodes are clickable — they link to the per-component drill-down page.",
     ]
     if LANGUAGE == "python":

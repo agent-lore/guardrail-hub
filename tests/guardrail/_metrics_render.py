@@ -71,6 +71,9 @@ def _graph_section(metrics: dict[str, Any]) -> list[str]:
         "; ".join(" ↔ ".join(scc) for scc in g["module_cycles"]) if g["module_cycles"] else "none"
     )
     skips = ", ".join(g["tier_skipping"]) if g["tier_skipping"] else "none"
+    # Name the span in the repo's own tier vocabulary (a skip = any edge
+    # jumping ≥2 tiers, illustrated by the top-to-bottom extreme).
+    tiers = list(load_architecture().get("tiers", {})) or ["Entrypoints", "Core", "Foundation"]
     return [
         "## Import graph",
         "",
@@ -78,7 +81,7 @@ def _graph_section(metrics: dict[str, Any]) -> list[str]:
         f" ({g['cross_component_module_edges']} module-level)",
         f"- Component cycles: {cycles}",
         f"- Module cycles: {module_cycles}",
-        f"- Tier-skipping edges (Entrypoints → Foundation): {g['tier_skipping_edges']} ({skips})",
+        f"- Tier-skipping edges ({tiers[0]} → {tiers[-1]}): {g['tier_skipping_edges']} ({skips})",
         f"- Longest component dependency chain: {g['longest_component_chain']}",
     ]
 

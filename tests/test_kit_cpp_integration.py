@@ -138,6 +138,18 @@ def test_domain_model_artifact_is_omitted_for_cpp(cpp_project: Path) -> None:
     assert "test_layering_contract.py" in index  # the cpp enforcement legend
 
 
+def test_generated_prose_uses_declared_tier_names(cpp_project: Path) -> None:
+    """Index/metrics prose must speak the repo's own [tiers] vocabulary."""
+    generated = cpp_project / "docs" / "generated"
+    index = (generated / "README.md").read_text(encoding="utf-8")
+    metrics_md = (generated / "metrics.md").read_text(encoding="utf-8")
+
+    assert "grouped by tier (App → Core → Foundation)" in index
+    assert "Tier subgraphs (App / Core / Foundation)" in index
+    assert "Tier-skipping edges (App → Foundation)" in metrics_md
+    assert "Entrypoints" not in index and "Entrypoints" not in metrics_md
+
+
 def test_component_page_lists_merged_module(cpp_project: Path) -> None:
     page = (cpp_project / "docs" / "generated" / "components" / "Core.md").read_text(
         encoding="utf-8"
