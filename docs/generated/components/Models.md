@@ -11,7 +11,7 @@ Frozen value types shared across tiers: snapshots, metric points, budgets, drift
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.models` | S | 10 | 0 |
+| `guardrail_hub.models` | S | 11 | 0 |
 
 ## Public API
 
@@ -23,6 +23,7 @@ Frozen value types shared across tiers: snapshots, metric points, budgets, drift
 - class `ComponentRow` — Per-component stats merged from the metrics snapshot's three sections.
 - class `RepoSnapshot` — Everything the dashboard shows for one repo's current worktree state.
 - class `ComponentHotspot` — Where structural churn concentrates: mainline line-churn x complexity.
+- class `CouplingPair` — Two modules in different components that keep changing in the same commits.
 - class `BudgetEvent` — One change to a [budgets] value in a repo's architecture.toml history.
 - class `FileDrift` — Drift verdict for one kit file in one repo.
 - class `DriftReport` — Kit drift for one repo: canonical version vs what the repo has.

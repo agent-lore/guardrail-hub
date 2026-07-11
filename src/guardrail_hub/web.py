@@ -131,6 +131,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
         points = await asyncio.to_thread(store.history, entry)
         drift = await asyncio.to_thread(compare_repo, entry)
         ledger = await asyncio.to_thread(store.ledger, entry)
+        coupling = await asyncio.to_thread(store.coupling, entry)
         return templates.TemplateResponse(
             request,
             "repo.html",
@@ -142,6 +143,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                 "trend_keys": TREND_KEYS,
                 "extract": extract,
                 "hotspots": component_hotspots(points)[:10],
+                "coupling": coupling,
                 "ledger": list(reversed(ledger))[:10],
             },
         )

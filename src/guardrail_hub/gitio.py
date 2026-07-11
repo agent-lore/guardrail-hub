@@ -83,3 +83,37 @@ def first_parent_log(repo: Path, ref: str, path: str) -> list[tuple[str, str]]:
 def show_file(repo: Path, sha: str, path: str) -> str:
     """File content at a commit. Raises RepoAccessError when absent at that commit."""
     return _git(repo, "show", f"{sha}:{path}")
+
+
+def first_parent_changes(repo: Path, ref: str, max_commits: int) -> list[list[str]]:
+    """Changed paths per first-parent commit of ``ref``, newest first.
+
+    Renames/copies (``-M``) count as the *new* path; deletions are dropped —
+    a removed module can no longer couple to anything. The ``\\x01`` sentinel
+    delimits commits so paths containing spaces parse safely.
+    """
+    out = _git(
+        repo,
+        "log",
+        "--first-parent",
+        f"-n{max_commits}",
+        "--name-status",
+        "-M",
+        "--format=%x01%h",
+        ref,
+    )
+    commits: list[list[str]] = []
+    for line in out.splitlines():
+        if line.startswith("\x01"):
+            commits.append([])
+            continue
+        if not line or not commits:
+            continue
+        status, _, rest = line.partition("\t")
+        if not status or status[0] == "D":
+            continue
+        # rename/copy lines are "<status>\t<old>\t<new>"
+        path = rest.rpartition("\t")[2] if status[0] in "RC" else rest
+        if path:
+            commits[-1].append(path)
+    return commits

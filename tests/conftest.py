@@ -146,6 +146,17 @@ def make_monorepo(
     return repo
 
 
+def commit_files(repo: Path, files: dict[str, str], message: str = "change") -> str:
+    """Write repo-relative files and commit them together (for co-change fixtures)."""
+    for rel, content in files.items():
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    _run(repo, "add", "-A")
+    _run(repo, "commit", "-q", "-m", message, "--no-verify")
+    return _run(repo, "rev-parse", "--short", "HEAD").strip()
+
+
 @pytest.fixture
 def fixture_repo(tmp_path: Path) -> Path:
     return make_repo(tmp_path)

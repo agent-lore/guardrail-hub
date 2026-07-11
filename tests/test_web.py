@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from tests.conftest import git, make_metrics, make_repo
+from tests.conftest import commit_files, git, make_metrics, make_repo
 
 from guardrail_hub.config import HubConfig, ServerConfig
 from guardrail_hub.models import RepoEntry
@@ -160,11 +160,31 @@ def test_repo_refresh(client: TestClient) -> None:
 
 
 def test_repo_page_shows_hotspots_and_ledger_sections(client: TestClient) -> None:
-    # the fixture has two snapshots -> hotspots render; no budget edits -> ledger hidden
+    # the fixture has two snapshots -> hotspots render; no budget edits -> ledger hidden;
+    # no co-changing source history -> coupling panel hidden
     page = client.get("/repos/fixture").text
     assert "Hotspots" in page
     assert "Core" in page
     assert "Budget ledger" not in page
+    assert "Change coupling" not in page
+
+
+def test_repo_page_shows_coupling_panel(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path)
+    for i in range(3):
+        commit_files(
+            repo,
+            {"src/fixture/core.py": f"a = {i}\n", "src/fixture/web.py": f"b = {i}\n"},
+            message=f"pair {i}",
+        )
+    config = HubConfig(
+        repos=(RepoEntry(name="fixture", path=repo, family="test"),), server=ServerConfig()
+    )
+    page = TestClient(create_app(config)).get("/repos/fixture").text
+
+    assert "Change coupling" in page
+    assert "fixture.core" in page and "fixture.web" in page
+    assert "components/Web.md" in page  # component drill-down links
 
 
 def test_ledger_page_renders(client: TestClient) -> None:

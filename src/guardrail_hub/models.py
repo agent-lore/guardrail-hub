@@ -116,6 +116,20 @@ class ComponentHotspot:
 
 
 @dataclass(frozen=True)
+class CouplingPair:
+    """Two modules in different components that keep changing in the same commits."""
+
+    module_a: str
+    component_a: str
+    module_b: str
+    component_b: str
+    co_changes: int
+    changes_a: int
+    changes_b: int
+    strength: float  # co_changes / min(changes_a, changes_b)
+
+
+@dataclass(frozen=True)
 class BudgetEvent:
     """One change to a [budgets] value in a repo's architecture.toml history."""
 

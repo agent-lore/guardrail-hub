@@ -12,10 +12,10 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 
-from guardrail_hub import budget_ledger, gitio, history, repo_scan
+from guardrail_hub import budget_ledger, coupling, gitio, history, repo_scan
 from guardrail_hub.config import HubConfig
 from guardrail_hub.errors import RepoAccessError
-from guardrail_hub.models import BudgetEvent, MetricPoint, RepoEntry, RepoSnapshot
+from guardrail_hub.models import BudgetEvent, CouplingPair, MetricPoint, RepoEntry, RepoSnapshot
 
 _SnapshotKey = tuple[str, float, float]
 
@@ -48,6 +48,7 @@ class RepoStore:
         self._snapshots: dict[str, tuple[_SnapshotKey, RepoSnapshot]] = {}
         self._histories: dict[str, tuple[str, tuple[MetricPoint, ...]]] = {}
         self._ledgers: dict[str, tuple[str, tuple[BudgetEvent, ...]]] = {}
+        self._couplings: dict[str, tuple[str, tuple[CouplingPair, ...]]] = {}
 
     @property
     def entries(self) -> tuple[RepoEntry, ...]:
@@ -104,6 +105,24 @@ class RepoStore:
             self._ledgers[entry.name] = (tip, events)
         return events
 
+    def coupling(self, entry: RepoEntry) -> tuple[CouplingPair, ...]:
+        """Cross-component co-change pairs from the default branch, cached by tip sha."""
+        try:
+            tip = gitio.branch_tip(entry.path, entry.default_branch) or gitio.head_sha(entry.path)
+        except RepoAccessError:
+            return ()
+        with self._lock:
+            cached = self._couplings.get(entry.name)
+            if cached is not None and cached[0] == tip:
+                return cached[1]
+        try:
+            pairs = coupling.mine_coupling(entry, tip)
+        except RepoAccessError:
+            pairs = ()
+        with self._lock:
+            self._couplings[entry.name] = (tip, pairs)
+        return pairs
+
     def refresh(self, name: str | None = None) -> None:
         """Forget cached state (one repo, or everything) so next access re-reads disk."""
         with self._lock:
@@ -111,10 +130,12 @@ class RepoStore:
                 self._snapshots.clear()
                 self._histories.clear()
                 self._ledgers.clear()
+                self._couplings.clear()
             else:
                 self._snapshots.pop(name, None)
                 self._histories.pop(name, None)
                 self._ledgers.pop(name, None)
+                self._couplings.pop(name, None)
 
 
 StoreFactory = Callable[[HubConfig], RepoStore]

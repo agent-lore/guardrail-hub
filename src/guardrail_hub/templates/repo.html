@@ -86,6 +86,30 @@
 </section>
 {% endif %}
 
+{% if coupling %}
+<section class="panel">
+  <h2>Change coupling <span class="muted">(cross-component pairs changing together on {{ snapshot.entry.default_branch }})</span></h2>
+  <table class="data-table">
+    <thead>
+      <tr><th>Module pair</th><th>Components</th><th class="num">Co-changes</th>
+          <th class="num">Changes A / B</th><th class="num">Strength</th></tr>
+    </thead>
+    <tbody>
+      {% for c in coupling %}
+      <tr>
+        <td><code>{{ c.module_a }}</code> ↔ <code>{{ c.module_b }}</code></td>
+        <td><a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ c.component_a }}.md">{{ c.component_a }}</a>
+            ↔ <a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ c.component_b }}.md">{{ c.component_b }}</a></td>
+        <td class="num">{{ c.co_changes }}</td>
+        <td class="num">{{ c.changes_a }} / {{ c.changes_b }}</td>
+        <td class="num"><strong>{{ "%.2f" | format(c.strength) }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
 {% if ledger %}
 <section class="panel">
   <h2>Budget ledger <span class="muted">(latest changes on {{ snapshot.entry.default_branch }})</span></h2>

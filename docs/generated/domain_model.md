@@ -41,6 +41,16 @@ classDiagram
     +max_complexity int
     +functions_over_10 int
   }
+  class CouplingPair {
+    +module_a str
+    +component_a str
+    +module_b str
+    +component_b str
+    +co_changes int
+    +changes_a int
+    +changes_b int
+    +strength float
+  }
   class DriftReport {
     +repo str
     +kit_version str

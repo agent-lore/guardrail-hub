@@ -11,7 +11,7 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.gitio` | XS | 0 | 7 |
+| `guardrail_hub.gitio` | S | 0 | 8 |
 
 ## Public API
 
@@ -23,6 +23,7 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 - def `is_dirty`
 - def `first_parent_log` — ``(short sha, YYYY-MM-DD)`` per first-parent commit of ``ref`` touching ``path``.
 - def `show_file` — File content at a commit. Raises RepoAccessError when absent at that commit.
+- def `first_parent_changes` — Changed paths per first-parent commit of ``ref``, newest first.
 
 ## Dependencies
 

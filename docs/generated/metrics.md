@@ -21,7 +21,7 @@ lower a budget after improving the code to lock in the gain.
 
 ## Import graph
 
-- Cross-component edges: **37** (44 module-level)
+- Cross-component edges: **37** (48 module-level)
 - Component cycles: none
 - Module cycles: none
 - Tier-skipping edges (Entrypoints → Foundation): 5 (Cli -> Config, Cli -> Errors, Web -> Config, Web -> Logging, Web -> Models)
@@ -40,25 +40,25 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | DocsRender | 1 | 95 | 72 | 1 | 0 | 0.00 | 6 (`guardrail_hub.docs_render._make_parser._rewrite_links`) | 0 |
 | Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
 | Errors | 1 | 23 | 13 | 8 | 0 | 0.00 | - | 0 |
-| Gitio | 1 | 85 | 63 | 4 | 1 | 0.20 | 5 (`guardrail_hub.gitio._git`) | 0 |
-| History | 3 | 217 | 174 | 2 | 3 | 0.60 | 7 (`guardrail_hub.budget_ledger.mine_ledger`) | 0 |
+| Gitio | 1 | 119 | 93 | 4 | 1 | 0.20 | 9 (`guardrail_hub.gitio.first_parent_changes`) | 0 |
+| History | 5 | 361 | 295 | 2 | 3 | 0.60 | 12 (`guardrail_hub.coupling.mine_coupling`) | 2 |
 | Installer | 1 | 363 | 300 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
-| Models | 1 | 158 | 119 | 7 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
+| Models | 1 | 172 | 130 | 7 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
 | RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
-| Store | 1 | 120 | 100 | 1 | 6 | 0.86 | 6 (`guardrail_hub.store.RepoStore.history`) | 0 |
-| Web | 1 | 302 | 269 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
+| Store | 1 | 141 | 120 | 1 | 6 | 0.86 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
+| Web | 1 | 304 | 271 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
 
 ## Size
 
-- Modules: **19**, lines: **2235**, SLOC: **1822**
+- Modules: **21**, lines: **2450**, SLOC: **2006**
 - Largest module: `guardrail_hub.installer` (363 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
-- Functions: **112**, cyclomatic > 10: **4**
+- Functions: **118**, cyclomatic > 10: **6**
 
 Top 10 most complex functions:
 
@@ -67,13 +67,13 @@ Top 10 most complex functions:
 | 19 | `guardrail_hub.cli._cmd_drift` |
 | 16 | `guardrail_hub.installer.apply_kit` |
 | 14 | `guardrail_hub.installer._tiers_from_importlinter` |
+| 12 | `guardrail_hub.coupling.mine_coupling` |
 | 12 | `guardrail_hub.drift._FoldStringConcat.visit_BinOp` |
+| 11 | `guardrail_hub.archmap.load_archmap` |
 | 10 | `guardrail_hub.drift._extras` |
 | 10 | `guardrail_hub.installer.build_architecture_skeleton` |
 | 10 | `guardrail_hub.kit.load_manifest` |
 | 9 | `guardrail_hub.drift._strip_docstrings` |
-| 8 | `guardrail_hub.repo_scan.scan` |
-| 7 | `guardrail_hub.budget_ledger.mine_ledger` |
 
 ## Seams
 
@@ -85,5 +85,5 @@ Private-name reaches across module seams. Both counts can be pinned as
 
 ## Domain & tests
 
-- Domain models: **10** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **2.14** (4785 test lines / 2235 source lines)
+- Domain models: **11** (5 associations, 0 without docstrings)
+- Test-to-source line ratio: **2.05** (5011 test lines / 2450 source lines)

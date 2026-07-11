@@ -3,7 +3,7 @@
 
 # History
 
-The time-series layer: metric history mined from committed metrics.json, plus the hotspot derivation and the budget-change ledger.
+The time-series layer: metric history mined from committed metrics.json, plus the hotspot derivation, the budget-change ledger, and change-coupling mining.
 
 **Tier:** Core
 
@@ -11,16 +11,25 @@ The time-series layer: metric history mined from committed metrics.json, plus th
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
+| `guardrail_hub.archmap` | XS | 1 | 1 |
 | `guardrail_hub.budget_ledger` | XS | 0 | 3 |
+| `guardrail_hub.coupling` | XS | 0 | 1 |
 | `guardrail_hub.history` | XS | 0 | 4 |
 | `guardrail_hub.hotspots` | XS | 0 | 1 |
 
 ## Public API
 
+### `guardrail_hub.archmap`
+- class `ArchMap` — Module naming + component ownership rules of one kit instance.
+- def `load_archmap` — ArchMap for a registered repo, or None when its config is absent/invalid.
+
 ### `guardrail_hub.budget_ledger`
 - def `architecture_path` — Repo-relative path of architecture.toml (subdir-aware for monorepos).
 - def `mine_ledger` — One BudgetEvent per key change between consecutive mainline snapshots.
 - def `raise_counts` — Raises per budget key — high counts mark weak ratchets.
+
+### `guardrail_hub.coupling`
+- def `mine_coupling` — Top cross-component co-change pairs on ``ref``'s first-parent history.
 
 ### `guardrail_hub.history`
 - def `snapshot_path` — Repo-relative path of the metrics snapshot (subdir-aware for monorepos).
