@@ -47,8 +47,8 @@ language     = "{language}"
 # little above today's largest module. Ratchet the *count* of oversized modules
 # down via modules_over_800_lines instead.
 #
-# TODO: run `make diagrams` (twice — see the checklist), read the measured
-# values from docs/generated/metrics.md, then uncomment and pin:
+# TODO: run `make diagrams`, read the measured values from
+# docs/generated/metrics.md, then uncomment and pin:
 [budgets]
 {budgets_block}
 

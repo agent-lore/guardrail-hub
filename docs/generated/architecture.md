@@ -5,6 +5,10 @@
 
 ```mermaid
 graph TD
+  subgraph tier_Entrypoints["Entrypoints"]
+    Cli
+    Web
+  end
   subgraph tier_Core["Core"]
     Budgets
     DocsRender
@@ -15,10 +19,6 @@ graph TD
     Kit
     RepoScan
     Store
-  end
-  subgraph tier_Entrypoints["Entrypoints"]
-    Cli
-    Web
   end
   subgraph tier_Foundation["Foundation"]
     Config

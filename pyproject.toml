@@ -92,6 +92,7 @@ forbidden_modules = [
   "guardrail_hub.installer",
   "guardrail_hub.web",
   "guardrail_hub.cli",
+  "guardrail_hub.__main__",
 ]
 
 [[tool.importlinter.contracts]]
@@ -111,6 +112,7 @@ source_modules = [
 forbidden_modules = [
   "guardrail_hub.web",
   "guardrail_hub.cli",
+  "guardrail_hub.__main__",
 ]
 
 [tool.pytest.ini_options]

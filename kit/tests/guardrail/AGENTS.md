@@ -65,12 +65,12 @@ accounted for in `_index.all_expected_paths()`. `test_generated_manifest`
 asserts the directory equals the registry, so an orphaned or renamed artifact is
 a failure, not a silently rotting file.
 
-**First-run ordering gotcha:** on a *fresh* port with an empty `docs/generated/`,
-pytest runs `test_generated_index` / `test_generated_manifest` before the
-generators that create the files (files run in alphabetical order), so the
-*first* `make diagrams` can fail on missing artifacts; a second run passes. A
-committed repo never hits this (the files already exist) — it only matters the
-very first time you generate on a new project.
+**Ordering is handled by `conftest.py`:** a session-scoped autouse fixture
+writes every registered artifact before any test runs, so a single
+`make diagrams` succeeds even from an empty `docs/generated/` and the
+index/manifest checks never depend on pytest's alphabetical file order. The
+driver tests then re-render byte-identically and keep their assertions — if
+you add an artifact, add it to `conftest._generate_all()` too.
 
 ## Adding a new artifact
 
@@ -79,7 +79,8 @@ very first time you generate on a new project.
    the parse — that's why `write()` doesn't add the header itself).
 2. Add a driver `test_*.py` that calls `write("name.md", render_*())`.
 3. Register it: append an `Artifact(...)` in `_index.artifacts()` (or extend
-   `component_page_paths()` for a whole family).
+   `component_page_paths()` for a whole family), and add the same write to
+   `conftest._generate_all()` so fresh runs emit it before validation.
 4. `make diagrams` now emits it and CI drift-gates it automatically.
 
 ## Budgets are hand-edited ratchets

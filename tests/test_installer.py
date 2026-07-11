@@ -77,7 +77,7 @@ def test_apply_writes_kit_and_skeleton(tmp_path: Path) -> None:
     assert not (target / "tests" / "guardrail" / "_containers.py").exists()
     # report carries the wiring snippets + checklist
     assert "diagrams:" in report and "Diagram drift" in report
-    assert "Run `make diagrams` TWICE" in report
+    assert "Run `make diagrams`" in report
     assert 'pythonpath = ["."]' in report
 
 

@@ -13,6 +13,10 @@
 # always writes the canonical path).
 
 [[files]]
+path = "tests/guardrail/conftest.py"
+role = "core"
+
+[[files]]
 path = "tests/guardrail/_common.py"
 role = "core"
 

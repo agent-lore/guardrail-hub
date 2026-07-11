@@ -235,13 +235,13 @@ _CHECKLIST = """\
    (or keep an existing tests/__init__.py chain if the repo already has one).
 3. If pyproject has no [tool.importlinter] contracts yet, add the two forbidden
    contracts (Foundation must not import Core/Entrypoints; Core must not import
-   Entrypoints) — tests/guardrail/test_layering_contract.py enforces them.
+   Entrypoints) — tests/guardrail/test_layering_contract.py enforces them AND
+   checks they stay synchronized with docs/architecture.toml [tiers].
 4. Review docs/architecture.toml: resolve every TODO — merge single-module
    components into meaningful ones, write [component_docs] one-liners, classify
    [domain] include/exclude until the completeness test passes.
-5. Run `make diagrams` TWICE. First-run gotcha: with an empty docs/generated/,
-   the index/manifest tests run before the generators (alphabetical order), so
-   the very first run can fail on missing artifacts; the second run passes.
+5. Run `make diagrams` (a single run regenerates everything, even from an
+   empty docs/generated/ — conftest.py writes all artifacts up front).
 6. Read the measured values from docs/generated/metrics.md and pin [budgets]
    (uncomment, fill numbers; max_module_lines a little above today's largest).
 7. Run `make diagrams` again after the budget edit and commit docs/generated/.
@@ -265,9 +265,8 @@ _CHECKLIST_CPP = """\
 4. Review docs/architecture.toml: resolve every TODO — map every module (the
    .h/.cpp pair merged by stem) to a component, write [component_docs]
    one-liners, and map generated include prefixes via [cpp.virtual_includes].
-5. Run `pytest tests/guardrail -q` TWICE. First-run gotcha: with an empty
-   docs/generated/, the index/manifest tests run before the generators
-   (alphabetical order), so the very first run can fail; the second passes.
+5. Run `pytest tests/guardrail -q` (a single run regenerates everything, even
+   from an empty docs/generated/ — conftest.py writes all artifacts up front).
 6. Read the measured values from docs/generated/metrics.md and pin [budgets]
    (uncomment, fill numbers; max_module_lines a little above today's largest).
 7. Run the tests again after the budget edit and commit docs/generated/.

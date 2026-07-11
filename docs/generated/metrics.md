@@ -13,7 +13,7 @@ lower a budget after improving the code to lock in the gain.
 |---|---:|---:|---:|
 | `component_cycles` | 0 | 0 | 0 |
 | `cross_component_edges` | 37 | 37 | 0 |
-| `max_module_lines` | 360 | 800 | 440 |
+| `max_module_lines` | 359 | 800 | 441 |
 | `module_cycles` | 0 | 0 | 0 |
 | `modules_over_800_lines` | 0 | 0 | 0 |
 
@@ -40,7 +40,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Errors | 1 | 23 | 13 | 8 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 85 | 63 | 4 | 1 | 0.20 | 5 (`guardrail_hub.gitio._git`) | 0 |
 | History | 1 | 75 | 60 | 2 | 3 | 0.60 | 6 (`guardrail_hub.history.extract`) | 0 |
-| Installer | 1 | 360 | 297 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
+| Installer | 1 | 359 | 296 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
 | Models | 1 | 127 | 95 | 7 | 0 | 0.00 | 2 (`guardrail_hub.models.DriftReport.clean`) | 0 |
@@ -50,8 +50,8 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 ## Size
 
-- Modules: **17**, lines: **1974**, SLOC: **1600**
-- Largest module: `guardrail_hub.installer` (360 lines)
+- Modules: **17**, lines: **1973**, SLOC: **1599**
+- Largest module: `guardrail_hub.installer` (359 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
@@ -76,4 +76,4 @@ Top 10 most complex functions:
 ## Domain & tests
 
 - Domain models: **8** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.95** (3847 test lines / 1974 source lines)
+- Test-to-source line ratio: **2.01** (3956 test lines / 1973 source lines)

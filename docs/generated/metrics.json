@@ -310,11 +310,11 @@
         "classes": 0,
         "functions": 11,
         "largest_module": "guardrail_hub.installer",
-        "largest_module_lines": 360,
-        "lines": 360,
+        "largest_module_lines": 359,
+        "lines": 359,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 297
+        "sloc": 296
       },
       "Kit": {
         "classes": 1,
@@ -378,15 +378,15 @@
       }
     },
     "max_module": "guardrail_hub.installer",
-    "max_module_lines": 360,
+    "max_module_lines": 359,
     "modules_over_800": [],
-    "total_lines": 1974,
+    "total_lines": 1973,
     "total_modules": 17,
-    "total_sloc": 1600
+    "total_sloc": 1599
   },
   "tests": {
-    "ratio": 1.95,
-    "src_lines": 1974,
-    "test_lines": 3847
+    "ratio": 2.01,
+    "src_lines": 1973,
+    "test_lines": 3956
   }
 }

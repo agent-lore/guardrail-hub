@@ -85,13 +85,9 @@ def cpp_project(tmp_path_factory: pytest.TempPathFactory) -> Path:
     (target / "docs" / "architecture.toml").write_text(ARCHITECTURE, encoding="utf-8")
     (target / "pytest.ini").write_text("[pytest]\npythonpath = .\n", encoding="utf-8")
 
-    # First-run ordering gotcha: index/manifest tests may run before the
-    # generators on an empty docs/generated/; the second run must be green.
-    subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/guardrail", "-q", "-p", "no:cacheprovider"],
-        cwd=target,
-        capture_output=True,
-    )
+    # The FIRST run must pass even though docs/generated/ starts empty —
+    # conftest.py generates every artifact before validation (this is the
+    # regression guard for the old run-twice ordering gotcha).
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/guardrail", "-q", "-p", "no:cacheprovider"],
         cwd=target,
