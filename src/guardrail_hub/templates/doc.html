@@ -6,6 +6,25 @@
   <span>/</span>
   <span class="crumb-current">{{ doc_path }}</span>
 </nav>
+{% if doc_path == "architecture.md" %}
+<aside class="panel edge-legend" aria-label="Diagram legend">
+  <h2>Reading the edges</h2>
+  <ul>
+    <li><span class="edge-sample edge-solid"></span>
+      ordinary dependency — within a tier or to the adjacent tier below; the
+      structure worth reviewing.</li>
+    <li><span class="edge-sample edge-faint"></span>
+      fan-in to the bottom tier — everything uses the foundation, so these are
+      de-emphasized as expected plumbing.</li>
+    <li><span class="edge-sample edge-skip"></span>
+      tier-skipping — jumps two or more tiers down; legal but counted
+      (<code>tier_skipping_edges</code> in metrics.md) because layering erosion
+      starts with shortcuts.</li>
+  </ul>
+  <p class="muted">Upward edges never appear: the layering contract forbids
+    them. Nodes are clickable and open the component's drill-down page.</p>
+</aside>
+{% endif %}
 <article class="doc-body">
   {{ body | safe }}
 </article>

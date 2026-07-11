@@ -173,3 +173,18 @@ def test_ledger_page_renders(client: TestClient) -> None:
     assert "Budget ledger" in page.text
     # fixture repos have no budget changes -> the empty state shows
     assert "No budget changes recorded yet" in page.text
+
+
+def test_architecture_doc_shows_edge_legend(client: TestClient) -> None:
+    page = client.get("/repos/fixture/docs/architecture.md").text
+    assert "Reading the edges" in page
+    assert "tier-skipping" in page
+
+
+def test_other_docs_have_no_edge_legend(client: TestClient) -> None:
+    page = client.get("/repos/fixture/docs/metrics.md")
+    if page.status_code == 200:  # fixture may not write metrics.md
+        assert "Reading the edges" not in page.text
+    comp = client.get("/repos/fixture/docs/components/Core.md")
+    if comp.status_code == 200:
+        assert "Reading the edges" not in comp.text

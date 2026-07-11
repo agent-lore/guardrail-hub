@@ -498,3 +498,35 @@ h1 {
   background: #ece7dc;
   color: var(--muted);
 }
+
+/* Edge legend on the architecture-diagram page (mirrors the mermaid linkStyles). */
+.edge-legend ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.edge-legend li {
+  align-items: baseline;
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.edge-sample {
+  border-top: 2.5px solid var(--ink);
+  display: inline-block;
+  flex: none;
+  position: relative;
+  top: -0.2em;
+  width: 2.2rem;
+}
+
+.edge-faint {
+  border-top-color: #bbb;
+}
+
+.edge-skip {
+  border-top-color: #999;
+  border-top-style: dashed;
+}
