@@ -66,21 +66,27 @@ def _tier_prefixes(arch: dict) -> list[set[str]]:
     ]
 
 
-def test_importlinter_contracts_match_architecture_toml() -> None:
-    """The manual [tool.importlinter] lists must mirror docs/architecture.toml.
+def _covered(prefix: str, entries: list[str]) -> bool:
+    """True if *prefix* falls under any of the contract's module *entries*."""
+    return any(prefix == e or prefix.startswith(e + ".") for e in entries)
+
+
+def test_importlinter_contracts_cover_architecture_tiers() -> None:
+    """Every downward-only rule implied by [tiers] is enforced by some contract.
 
     [tiers]/[components] drive the diagram and metrics; import-linter enforces
-    the same direction from hand-maintained module lists. A component added,
-    moved, or renamed in only one of the two places would silently weaken
-    enforcement — this test pins them together, assuming the kit's standard
-    two-contract convention (Foundation must not import upward; Core must not
-    import Entrypoints).
+    direction from hand-maintained module lists. This is a COVERAGE check: for
+    each lower-tier module prefix and each higher-tier prefix, at least one
+    forbidden contract must ban that import. Contracts may be stricter than
+    the tier map (e.g. holding an individual Core module to Foundation
+    discipline) — extra strictness is welcome; a gap is not. Stale contract
+    entries are caught by import-linter itself (unknown module = error).
     """
     if LANGUAGE != "python":
         pytest.skip("cpp derives the contract from [tiers] directly — nothing to synchronize")
     arch = load_architecture()
     tiers = _tier_prefixes(arch)
-    assert len(tiers) == 3, "the two-contract convention assumes three [tiers]"
+    assert len(tiers) >= 2, "docs/architecture.toml needs at least two [tiers] to imply rules"
 
     pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     contracts = [
@@ -88,34 +94,22 @@ def test_importlinter_contracts_match_architecture_toml() -> None:
         for c in pyproject.get("tool", {}).get("importlinter", {}).get("contracts", [])
         if c.get("type") == "forbidden"
     ]
-    assert len(contracts) == 2, (
-        "expected exactly the two forbidden contracts (Foundation / Core) in "
-        "pyproject.toml [tool.importlinter]"
-    )
-    # The Foundation contract forbids both higher tiers, so it always has the
-    # larger forbidden set — identify the pair by shape, not by name.
-    core_c, foundation_c = sorted(contracts, key=lambda c: len(c.get("forbidden_modules", [])))
+    assert contracts, "pyproject.toml [tool.importlinter] has no forbidden contracts"
 
-    entrypoints, core, foundation = tiers
-    expected = {
-        "Foundation contract source_modules": (
-            set(foundation_c.get("source_modules", [])),
-            foundation,
-        ),
-        "Foundation contract forbidden_modules": (
-            set(foundation_c.get("forbidden_modules", [])),
-            entrypoints | core,
-        ),
-        "Core contract source_modules": (set(core_c.get("source_modules", [])), core),
-        "Core contract forbidden_modules": (set(core_c.get("forbidden_modules", [])), entrypoints),
-    }
-    mismatches = [
-        f"{what}: only in pyproject {sorted(got - want)}, only in architecture.toml "
-        f"{sorted(want - got)}"
-        for what, (got, want) in expected.items()
-        if got != want
+    gaps = [
+        f"{src} may import {target}"
+        for low in range(1, len(tiers))
+        for src in sorted(tiers[low])
+        for high in range(low)
+        for target in sorted(tiers[high])
+        if not any(
+            _covered(src, c.get("source_modules", []))
+            and _covered(target, c.get("forbidden_modules", []))
+            for c in contracts
+        )
     ]
-    assert not mismatches, (
-        "pyproject.toml [tool.importlinter] disagrees with docs/architecture.toml "
-        "[tiers]/[components] — update whichever side is stale:\n  " + "\n  ".join(mismatches)
+    assert not gaps, (
+        "[tiers] in docs/architecture.toml implies downward-only rules that no "
+        "[tool.importlinter] forbidden contract enforces — add the missing "
+        "source/forbidden entries (or fix the tier map):\n  " + "\n  ".join(gaps)
     )
