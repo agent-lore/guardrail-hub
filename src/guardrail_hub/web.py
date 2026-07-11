@@ -34,6 +34,7 @@ MAX_FILE_BYTES = 2_000_000
 # Default trend keys — the kit's metrics_history DEFAULT_KEYS plus test ratio.
 TREND_KEYS = [
     "graph.cross_component_edges",
+    "graph.cross_component_module_edges",
     "graph.component_cycles.count",
     "graph.module_cycle_count",
     "size.modules_over_800.count",
@@ -46,6 +47,7 @@ TREND_KEYS = [
 # Headline metrics for the overview cards and the compare table.
 COMPARE_ROWS = [
     ("graph.cross_component_edges", "Cross-component edges"),
+    ("graph.cross_component_module_edges", "Module-level cross edges"),
     ("graph.component_cycles.count", "Component cycles"),
     ("graph.module_cycle_count", "Module cycles"),
     ("size.total_sloc", "Total SLOC"),

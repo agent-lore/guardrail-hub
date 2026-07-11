@@ -30,6 +30,7 @@ dev = [
   "import-linter>=2.12",
   "networkx>=3.4",
   "httpx>=0.27",
+  "lizard>=1.17,<2",
 ]
 
 [project.scripts]

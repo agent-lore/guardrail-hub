@@ -107,7 +107,7 @@ def test_component_diagram_shows_include_edges_and_virtual_seam(cpp_project: Pat
     assert "Core --> Util" in diagram
 
 
-def test_metrics_merge_pairs_and_zero_python_only_sections(cpp_project: Path) -> None:
+def test_metrics_merge_pairs_and_language_sections(cpp_project: Path) -> None:
     metrics = json.loads(
         (cpp_project / "docs" / "generated" / "metrics.json").read_text(encoding="utf-8")
     )
@@ -115,9 +115,17 @@ def test_metrics_merge_pairs_and_zero_python_only_sections(cpp_project: Path) ->
     # engine.h + engine.cpp merge into one module; log.h and main.cpp are one each
     assert metrics["size"]["total_modules"] == 3
     assert metrics["graph"]["cross_component_edges"] == 4
+    # every module-level edge is unique here, so the weighted count matches
+    assert metrics["graph"]["cross_component_module_edges"] == 4
     assert metrics["domain"]["models"] == 0
-    assert metrics["complexity"]["total_functions"] == 0
     assert metrics["size"]["components"]["Core"]["modules"] == 1
+    # complexity comes from lizard for cpp: Engine::run + main are the only
+    # function DEFINITIONS (log.h holds a declaration, which lizard skips)
+    assert metrics["complexity"]["total_functions"] == 2
+    assert metrics["complexity"]["functions_over_10"] == 0
+    assert metrics["complexity"]["components"]["Core"]["max_function"] == (
+        "agent.core.engine.Engine::run"
+    )
 
 
 def test_domain_model_artifact_is_omitted_for_cpp(cpp_project: Path) -> None:

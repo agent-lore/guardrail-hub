@@ -253,8 +253,10 @@ _CHECKLIST = """\
 """
 
 _CHECKLIST_CPP = """\
-1. Give the guardrail a Python runtime: any env with pytest + networkx works
-   (a sibling Python project's venv is fine, e.g. `uv run --project ../server`).
+1. Give the guardrail a Python runtime: any env with pytest + networkx +
+   lizard works (a sibling Python project's venv is fine, e.g.
+   `uv run --project ../server`). Pin lizard (`lizard>=1.17,<2`) — the
+   committed metrics snapshot embeds its complexity-counting rules.
 2. Ensure pytest can import the kit as a package — add a minimal pytest.ini
    next to tests/:
      [pytest]

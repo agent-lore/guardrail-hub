@@ -63,15 +63,17 @@ def _tier_rank(tiers: dict[str, list[str]]) -> dict[str, int]:
 
 def _graph_metrics(components: dict[str, list[str]], tiers: dict[str, list[str]]) -> dict[str, Any]:
     module_edges = _module_edges()
-    comp_edges = sorted(
-        {
-            (src, dst)
-            for m, i in module_edges
-            if (src := component_of(m, components)) is not None
-            and (dst := component_of(i, components)) is not None
-            and src != dst
-        }
-    )
+    # crossing keeps one entry PER module-level edge; comp_edges dedupes to
+    # component pairs. Reporting both catches a PR that deepens an existing
+    # component dependency without adding a new one.
+    crossing = [
+        (src, dst)
+        for m, i in module_edges
+        if (src := component_of(m, components)) is not None
+        and (dst := component_of(i, components)) is not None
+        and src != dst
+    ]
+    comp_edges = sorted(set(crossing))
 
     comp_graph = nx.DiGraph(comp_edges)
     comp_graph.add_nodes_from(components)
@@ -109,6 +111,7 @@ def _graph_metrics(components: dict[str, list[str]], tiers: dict[str, list[str]]
         "component_cycles": component_cycles,
         "components": per_component,
         "cross_component_edges": len(comp_edges),
+        "cross_component_module_edges": len(crossing),
         "longest_component_chain": longest_chain,
         "module_cycle_count": len(module_cycles),
         "module_cycles": module_cycles,
@@ -261,6 +264,37 @@ def _function_complexities(tree: ast.Module, module: str) -> list[tuple[str, int
     return results
 
 
+def _cpp_function_complexities(module: str, paths: list[pathlib.Path]) -> list[tuple[str, int]]:
+    """(qualname, CCN) per C++ function definition, via lizard's tokenizer.
+
+    lizard needs no compiler or build flags, keeping the cpp instance a pure
+    text scan; its counting rules differ from the Python AST visitor above, so
+    compare complexity trends within a language, not across languages. Pin the
+    lizard version — the committed snapshot embeds its counting rules.
+    """
+    # Only cpp instances need lizard installed (short import line so 88-width
+    # reflow can't strand the ignore comment).
+    import lizard  # pyright: ignore
+
+    results: list[tuple[str, int]] = []
+    for path in paths:
+        analysis = lizard.analyze_file(str(path))
+        results.extend(
+            (f"{module}.{fn.name}", int(fn.cyclomatic_complexity)) for fn in analysis.function_list
+        )
+    return sorted(results)
+
+
+def _accumulate_complexity(stats: dict[str, Any], complexities: list[tuple[str, int]]) -> None:
+    for qualname, score in complexities:
+        if score > COMPLEXITY_THRESHOLD:
+            stats["functions_over_10"] += 1
+        if score > stats["max_complexity"] or (
+            score == stats["max_complexity"] and qualname < stats["max_function"]
+        ):
+            stats["max_complexity"], stats["max_function"] = score, qualname
+
+
 def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     per_component: dict[str, dict[str, Any]] = {
         comp: {"functions_over_10": 0, "max_complexity": 0, "max_function": ""}
@@ -268,25 +302,22 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     }
     all_functions: list[tuple[str, int]] = []
 
-    # Cyclomatic complexity is derived from the Python AST only; C++ projects
-    # report zeros under the same keys (schema stability across languages).
-    src_paths = sorted(SRC_ROOT.rglob("*.py")) if LANGUAGE == "python" else []
-    for path in src_paths:
-        module = module_name_of(path)
-        comp = component_of(module, components)
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        complexities = _function_complexities(tree, module)
-        all_functions.extend(complexities)
-        if comp is None:
-            continue
-        stats = per_component[comp]
-        for qualname, score in complexities:
-            if score > COMPLEXITY_THRESHOLD:
-                stats["functions_over_10"] += 1
-            if score > stats["max_complexity"] or (
-                score == stats["max_complexity"] and qualname < stats["max_function"]
-            ):
-                stats["max_complexity"], stats["max_function"] = score, qualname
+    if LANGUAGE == "python":
+        for path in sorted(SRC_ROOT.rglob("*.py")):
+            module = module_name_of(path)
+            comp = component_of(module, components)
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            complexities = _function_complexities(tree, module)
+            all_functions.extend(complexities)
+            if comp is not None:
+                _accumulate_complexity(per_component[comp], complexities)
+    else:
+        for module, paths in sorted(module_paths().items()):
+            comp = component_of(module, components)
+            complexities = _cpp_function_complexities(module, paths)
+            all_functions.extend(complexities)
+            if comp is not None:
+                _accumulate_complexity(per_component[comp], complexities)
 
     top = sorted(all_functions, key=lambda item: (-item[1], item[0]))[:10]
     return {
@@ -386,6 +417,7 @@ def budget_actual(metrics: dict[str, Any], key: str) -> int:
     actuals = {
         "component_cycles": len(metrics["graph"]["component_cycles"]),
         "cross_component_edges": metrics["graph"]["cross_component_edges"],
+        "cross_component_module_edges": metrics["graph"]["cross_component_module_edges"],
         "max_module_lines": metrics["size"]["max_module_lines"],
         "module_cycles": metrics["graph"]["module_cycle_count"],
         "modules_over_800_lines": len(metrics["size"]["modules_over_800"]),

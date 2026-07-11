@@ -74,7 +74,8 @@ def _graph_section(metrics: dict[str, Any]) -> list[str]:
     return [
         "## Import graph",
         "",
-        f"- Cross-component edges: **{g['cross_component_edges']}**",
+        f"- Cross-component edges: **{g['cross_component_edges']}**"
+        f" ({g['cross_component_module_edges']} module-level)",
         f"- Component cycles: {cycles}",
         f"- Module cycles: {module_cycles}",
         f"- Tier-skipping edges (Entrypoints → Foundation): {g['tier_skipping_edges']} ({skips})",

@@ -32,10 +32,12 @@ collection and risk side effects.
 grimp's import graph for Python (the default), the quoted-`#include` graph from
 `_cpp_graph.py` for `language = "cpp"` — both expose the same surface
 (`.modules` + `find_modules_directly_imported_by`), so generators stay
-language-blind. Python-only views (domain model, complexity, public API,
-class/function counts) report zeros or are omitted for C++; the layering
-contract swaps import-linter for a no-upward-tier-edge check on the include
-graph.
+language-blind. Python-only views (domain model, public API, class/function
+counts) report zeros or are omitted for C++; cyclomatic complexity for C++
+comes from `lizard` (pin its version — the committed snapshot embeds its
+counting rules, which differ from the Python AST visitor's, so compare
+complexity within a language, not across); the layering contract swaps
+import-linter for a no-upward-tier-edge check on the include graph.
 
 ## Config is the source of truth, not the code
 

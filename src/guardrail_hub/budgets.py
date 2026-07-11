@@ -15,6 +15,7 @@ from guardrail_hub.models import BudgetLevel, BudgetStatus
 _ACTUALS: dict[str, Callable[[Mapping[str, Any]], int]] = {
     "component_cycles": lambda m: len(m["graph"]["component_cycles"]),
     "cross_component_edges": lambda m: m["graph"]["cross_component_edges"],
+    "cross_component_module_edges": lambda m: m["graph"]["cross_component_module_edges"],
     "max_module_lines": lambda m: m["size"]["max_module_lines"],
     "module_cycles": lambda m: m["graph"]["module_cycle_count"],
     "modules_over_800_lines": lambda m: len(m["size"]["modules_over_800"]),
