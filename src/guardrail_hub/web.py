@@ -23,7 +23,6 @@ from guardrail_hub.budget_ledger import raise_counts
 from guardrail_hub.config import HubConfig, load_config
 from guardrail_hub.drift import compare_repo
 from guardrail_hub.history import extract, series
-from guardrail_hub.hotspots import component_hotspots
 from guardrail_hub.kit import kit_version
 from guardrail_hub.logging_setup import configure_logging
 from guardrail_hub.models import BudgetEvent, DriftReport, RepoEntry, RepoSnapshot
@@ -156,6 +155,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
         drift = await asyncio.to_thread(compare_repo, entry)
         ledger = await asyncio.to_thread(store.ledger, entry)
         coupling = await asyncio.to_thread(store.coupling, entry)
+        hotspots = await asyncio.to_thread(store.hotspots, entry)
         return templates.TemplateResponse(
             request,
             "repo.html",
@@ -166,7 +166,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                 "drift": drift,
                 "trend_keys": TREND_KEYS,
                 "extract": extract,
-                "hotspots": component_hotspots(points)[:10],
+                "hotspots": hotspots[:10],
                 "coupling": coupling,
                 "ledger": list(reversed(ledger))[:10],
             },

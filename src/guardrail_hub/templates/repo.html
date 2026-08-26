@@ -62,22 +62,23 @@
 </section>
 {% endif %}
 
-{% if hotspots and history_count >= 2 %}
+{% if hotspots %}
 <section class="panel">
-  <h2>Hotspots <span class="muted">(mainline churn × current complexity)</span></h2>
+  <h2>Hotspots <span class="muted">(recency-weighted mainline churn × current complexity, per module)</span></h2>
   <table class="data-table">
     <thead>
-      <tr><th>Component</th><th class="num">Churn (lines)</th><th class="num">Lines now</th>
-          <th class="num">Max cx</th><th class="num">Fns &gt; 10</th><th class="num">Score</th></tr>
+      <tr><th>Module</th><th>Component</th><th class="num">Churn (decayed)</th><th class="num">Commits</th>
+          <th class="num">SLOC</th><th class="num">Max cx</th><th class="num">Score</th></tr>
     </thead>
     <tbody>
       {% for h in hotspots %}
       <tr>
-        <td><a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ h.name }}.md">{{ h.name }}</a></td>
-        <td class="num">{{ h.churn_lines }}</td>
-        <td class="num">{{ h.lines }}</td>
+        <td><code>{{ h.module }}</code></td>
+        <td>{% if h.component %}<a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ h.component }}.md">{{ h.component }}</a>{% endif %}</td>
+        <td class="num">{{ h.churn }}</td>
+        <td class="num">{{ h.commits }}</td>
+        <td class="num">{{ h.sloc if h.sloc else "–" }}</td>
         <td class="num">{{ h.max_complexity }}</td>
-        <td class="num">{{ h.functions_over_10 }}</td>
         <td class="num"><strong>{{ h.score }}</strong></td>
       </tr>
       {% endfor %}
@@ -92,7 +93,7 @@
   <table class="data-table">
     <thead>
       <tr><th>Module pair</th><th>Components</th><th class="num">Co-changes</th>
-          <th class="num">Changes A / B</th><th class="num">Strength</th></tr>
+          <th class="num">Recent</th><th class="num">Changes A / B</th><th class="num">Strength</th></tr>
     </thead>
     <tbody>
       {% for c in coupling %}
@@ -101,6 +102,7 @@
         <td><a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ c.component_a }}.md">{{ c.component_a }}</a>
             ↔ <a href="/repos/{{ snapshot.entry.name }}/docs/components/{{ c.component_b }}.md">{{ c.component_b }}</a></td>
         <td class="num">{{ c.co_changes }}</td>
+        <td class="num">{{ "%.2f" | format(c.weighted_co) }}</td>
         <td class="num">{{ c.changes_a }} / {{ c.changes_b }}</td>
         <td class="num"><strong>{{ "%.2f" | format(c.strength) }}</strong></td>
       </tr>

@@ -54,8 +54,8 @@ def test_archmap_missing_config_is_none(tmp_path: Path) -> None:
     assert load_archmap(entry_for(tmp_path)) is None
 
 
-# --- gitio.first_parent_changes ------------------------------------------------ #
-def test_first_parent_changes_lists_paths_newest_first(fixture_repo: Path) -> None:
+# --- gitio.first_parent_numstat ------------------------------------------------ #
+def test_first_parent_numstat_lists_paths_newest_first(fixture_repo: Path) -> None:
     commit_files(fixture_repo, {"src/fixture/core.py": "a = 1\n"}, message="one")
     commit_files(
         fixture_repo,
@@ -63,28 +63,33 @@ def test_first_parent_changes_lists_paths_newest_first(fixture_repo: Path) -> No
         message="two",
     )
 
-    commits = gitio.first_parent_changes(fixture_repo, "HEAD", 10)
+    commits = gitio.first_parent_numstat(fixture_repo, "HEAD", 10)
 
-    assert commits[0] == ["src/fixture/core.py", "src/fixture/web.py"]
-    assert commits[1] == ["src/fixture/core.py"]
+    date, files = commits[0]
+    assert len(date) == 10  # YYYY-MM-DD
+    assert [p for p, _ in files] == ["src/fixture/core.py", "src/fixture/web.py"]
+    assert files[0][1] == 2  # a = 1 -> a = 2: one added + one deleted
+    assert [p for p, _ in commits[1][1]] == ["src/fixture/core.py"]
 
 
-def test_first_parent_changes_renames_count_as_new_path(fixture_repo: Path) -> None:
+def test_first_parent_numstat_renames_count_as_new_path(fixture_repo: Path) -> None:
     commit_files(fixture_repo, {"src/fixture/old.py": "x = 1\n" * 30}, message="add")
     git(fixture_repo, "mv", "src/fixture/old.py", "src/fixture/new.py")
     git(fixture_repo, "commit", "-q", "-m", "rename")
+    git(fixture_repo, "mv", "src/fixture/new.py", "elsewhere.py")
+    git(fixture_repo, "commit", "-q", "-m", "move out")
 
-    commits = gitio.first_parent_changes(fixture_repo, "HEAD", 10)
+    commits = gitio.first_parent_numstat(fixture_repo, "HEAD", 10)
 
-    assert commits[0] == ["src/fixture/new.py"]
-    assert "src/fixture/old.py" not in commits[0]
+    assert [p for p, _ in commits[0][1]] == ["elsewhere.py"]  # bare "old => new" form
+    assert [p for p, _ in commits[1][1]] == ["src/fixture/new.py"]  # braced "{old => new}" form
 
 
-def test_first_parent_changes_respects_commit_cap(fixture_repo: Path) -> None:
+def test_first_parent_numstat_respects_commit_cap(fixture_repo: Path) -> None:
     for i in range(3):
         commit_files(fixture_repo, {"src/fixture/core.py": f"a = {i}\n"}, message=f"c{i}")
 
-    assert len(gitio.first_parent_changes(fixture_repo, "HEAD", 2)) == 2
+    assert len(gitio.first_parent_numstat(fixture_repo, "HEAD", 2)) == 2
 
 
 # --- coupling.mine_coupling ---------------------------------------------------- #
@@ -112,6 +117,8 @@ def test_cross_component_pair_needs_min_support(fixture_repo: Path) -> None:
     assert (pair.component_a, pair.component_b) == ("Core", "Web")
     assert pair.co_changes == coupling.MIN_CO_CHANGES
     assert pair.strength == 1.0
+    # same-day fixture commits -> decay weight exactly 1.0 per co-change
+    assert pair.weighted_co == float(coupling.MIN_CO_CHANGES)
 
 
 def test_solo_changes_dilute_strength(fixture_repo: Path) -> None:

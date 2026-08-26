@@ -162,17 +162,16 @@ def test_repo_refresh(client: TestClient) -> None:
     assert client.post("/repos/nope/refresh", follow_redirects=False).status_code == 404
 
 
-def test_repo_page_shows_hotspots_and_ledger_sections(client: TestClient) -> None:
-    # the fixture has two snapshots -> hotspots render; no budget edits -> ledger hidden;
-    # no co-changing source history -> coupling panel hidden
+def test_repo_page_hides_empty_behavioural_sections(client: TestClient) -> None:
+    # the fixture's commits touch only docs/ -> no module churn, so hotspots
+    # and coupling hide; no budget edits -> ledger hidden
     page = client.get("/repos/fixture").text
-    assert "Hotspots" in page
-    assert "Core" in page
+    assert "Hotspots" not in page
     assert "Budget ledger" not in page
     assert "Change coupling" not in page
 
 
-def test_repo_page_shows_coupling_panel(tmp_path: Path) -> None:
+def test_repo_page_shows_hotspots_and_coupling_panels(tmp_path: Path) -> None:
     repo = make_repo(tmp_path)
     for i in range(3):
         commit_files(
@@ -186,6 +185,7 @@ def test_repo_page_shows_coupling_panel(tmp_path: Path) -> None:
     page = TestClient(create_app(config)).get("/repos/fixture").text
 
     assert "Change coupling" in page
+    assert "Hotspots" in page
     assert "fixture.core" in page and "fixture.web" in page
     assert "components/Web.md" in page  # component drill-down links
 

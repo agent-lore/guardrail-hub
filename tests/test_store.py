@@ -7,7 +7,15 @@ import os
 import shutil
 from pathlib import Path
 
-from tests.conftest import clone_of, commit_snapshot, git, make_metrics, make_monorepo, make_repo
+from tests.conftest import (
+    clone_of,
+    commit_files,
+    commit_snapshot,
+    git,
+    make_metrics,
+    make_monorepo,
+    make_repo,
+)
 
 from guardrail_hub import checkouts
 from guardrail_hub.config import CheckoutsConfig, HubConfig, ServerConfig
@@ -164,6 +172,29 @@ def test_unmanaged_refresh_never_fetches(fixture_entry: RepoEntry) -> None:
 
     assert store.snapshot(fixture_entry) is not first
     assert store.snapshot(fixture_entry).status.managed is False
+
+
+def test_hotspots_cached_by_tip_and_refreshed(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path)
+    entry = RepoEntry(name="fixture", path=repo, family="test")
+    store = _store(entry)
+    for i in range(2):
+        commit_files(repo, {"src/fixture/core.py": f"a = {i}\n"}, message=f"core {i}")
+
+    first = store.hotspots(entry)
+    assert first and first[0].module == "fixture.core"
+    assert store.hotspots(entry) is first  # cached by tip
+
+    commit_files(repo, {"src/fixture/core.py": "a = 9\n"}, message="more churn")
+    second = store.hotspots(entry)
+    assert second is not first
+    assert second[0].churn > first[0].churn
+
+
+def test_hotspots_missing_repo_is_empty(tmp_path: Path) -> None:
+    entry = RepoEntry(name="ghost", path=tmp_path / "nope", family="test")
+
+    assert _store(entry).hotspots(entry) == ()
 
 
 def test_snapshot_invalidated_by_subdir_regen(tmp_path: Path) -> None:

@@ -21,10 +21,17 @@ import threading
 from collections.abc import Callable
 from dataclasses import replace
 
-from guardrail_hub import budget_ledger, checkouts, coupling, gitio, history, repo_scan
+from guardrail_hub import budget_ledger, checkouts, coupling, gitio, history, hotspots, repo_scan
 from guardrail_hub.config import HubConfig
 from guardrail_hub.errors import RepoAccessError
-from guardrail_hub.models import BudgetEvent, CouplingPair, MetricPoint, RepoEntry, RepoSnapshot
+from guardrail_hub.models import (
+    BudgetEvent,
+    CouplingPair,
+    MetricPoint,
+    ModuleHotspot,
+    RepoEntry,
+    RepoSnapshot,
+)
 
 _SnapshotKey = tuple[str, float, float]
 
@@ -61,6 +68,7 @@ class RepoStore:
         self._histories: dict[str, tuple[str, tuple[MetricPoint, ...]]] = {}
         self._ledgers: dict[str, tuple[str, tuple[BudgetEvent, ...]]] = {}
         self._couplings: dict[str, tuple[str, tuple[CouplingPair, ...]]] = {}
+        self._hotspots: dict[str, tuple[str, tuple[ModuleHotspot, ...]]] = {}
 
     @property
     def entries(self) -> tuple[RepoEntry, ...]:
@@ -145,6 +153,30 @@ class RepoStore:
             self._couplings[entry.name] = (tip, pairs)
         return pairs
 
+    def hotspots(self, entry: RepoEntry) -> tuple[ModuleHotspot, ...]:
+        """Module hotspots from the default branch, cached by tip sha.
+
+        Enrichment (SLOC, complexity) comes from the current snapshot; on an
+        unmanaged worktree that can lag an uncommitted regeneration until the
+        next refresh — the churn side is pure committed history either way.
+        """
+        try:
+            tip = gitio.branch_tip(entry.path, entry.default_branch) or gitio.head_sha(entry.path)
+        except RepoAccessError:
+            return ()
+        with self._lock:
+            cached = self._hotspots.get(entry.name)
+            if cached is not None and cached[0] == tip:
+                return cached[1]
+        metrics = self.snapshot(entry).metrics
+        try:
+            rows = hotspots.mine_hotspots(entry, tip, metrics)
+        except RepoAccessError:
+            rows = ()
+        with self._lock:
+            self._hotspots[entry.name] = (tip, rows)
+        return rows
+
     def refresh(self, name: str | None = None) -> None:
         """Fetch managed clones (when enabled), then forget cached state.
 
@@ -160,6 +192,7 @@ class RepoStore:
                 self._histories.pop(repo_name, None)
                 self._ledgers.pop(repo_name, None)
                 self._couplings.pop(repo_name, None)
+                self._hotspots.pop(repo_name, None)
 
     def _fetch_one(self, name: str) -> None:
         original = self._config.repo(name)

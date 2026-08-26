@@ -22,7 +22,7 @@ Frozen value types shared across tiers: snapshots, metric points, budgets, drift
 - class `BudgetStatus` — A single [budgets] entry compared against the measured metrics.
 - class `ComponentRow` — Per-component stats merged from the metrics snapshot's three sections.
 - class `RepoSnapshot` — Everything the dashboard shows for one repo's current worktree state.
-- class `ComponentHotspot` — Where structural churn concentrates: mainline line-churn x complexity.
+- class `ModuleHotspot` — Where risk concentrates: decay-weighted mainline churn x complexity.
 - class `CouplingPair` — Two modules in different components that keep changing in the same commits.
 - class `BudgetEvent` — One change to a [budgets] value in a repo's architecture.toml history.
 - class `FileDrift` — Drift verdict for one kit file in one repo.

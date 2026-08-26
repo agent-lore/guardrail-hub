@@ -112,15 +112,21 @@ class RepoSnapshot:
 
 
 @dataclass(frozen=True)
-class ComponentHotspot:
-    """Where structural churn concentrates: mainline line-churn x complexity."""
+class ModuleHotspot:
+    """Where risk concentrates: decay-weighted mainline churn x complexity.
 
-    name: str
-    churn_lines: int
-    lines: int
+    ``churn`` is recency-decayed line churn from real numstat history;
+    ``score`` normalizes it by module size where per-module metrics exist
+    (churn density x complexity), else falls back to the raw product.
+    """
+
+    module: str
+    component: str
+    churn: float
+    commits: int
+    sloc: int
     max_complexity: int
-    functions_over_10: int
-    score: int
+    score: float
 
 
 @dataclass(frozen=True)
@@ -135,6 +141,7 @@ class CouplingPair:
     changes_a: int
     changes_b: int
     strength: float  # co_changes / min(changes_a, changes_b)
+    weighted_co: float = 0.0  # co-changes decay-weighted by commit recency
 
 
 @dataclass(frozen=True)

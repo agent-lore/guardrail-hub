@@ -38,12 +38,12 @@
       },
       "Gitio": {
         "functions_over_10": 0,
-        "max_complexity": 9,
-        "max_function": "guardrail_hub.gitio.first_parent_changes"
+        "max_complexity": 8,
+        "max_function": "guardrail_hub.gitio.first_parent_numstat"
       },
       "History": {
         "functions_over_10": 2,
-        "max_complexity": 12,
+        "max_complexity": 15,
         "max_function": "guardrail_hub.coupling.mine_coupling"
       },
       "Installer": {
@@ -83,7 +83,7 @@
       }
     },
     "function_lengths": {
-      "max": 235,
+      "max": 236,
       "max_function": "guardrail_hub.web.create_app",
       "median": 9,
       "over_75": 1,
@@ -105,14 +105,14 @@
         "qualname": "guardrail_hub.installer.apply_kit"
       },
       {
+        "complexity": 15,
+        "length": 52,
+        "qualname": "guardrail_hub.coupling.mine_coupling"
+      },
+      {
         "complexity": 14,
         "length": 33,
         "qualname": "guardrail_hub.installer._tiers_from_importlinter"
-      },
-      {
-        "complexity": 12,
-        "length": 35,
-        "qualname": "guardrail_hub.coupling.mine_coupling"
       },
       {
         "complexity": 12,
@@ -145,7 +145,7 @@
         "qualname": "guardrail_hub.drift._strip_docstrings"
       }
     ],
-    "total_functions": 133
+    "total_functions": 139
   },
   "domain": {
     "associations": 5,
@@ -237,7 +237,7 @@
       }
     },
     "cross_component_edges": 42,
-    "cross_component_module_edges": 53,
+    "cross_component_module_edges": 54,
     "longest_component_chain": 5,
     "module_cycle_count": 0,
     "module_cycles": [],
@@ -305,9 +305,9 @@
     },
     "guardrail_hub.coupling": {
       "functions": 1,
-      "lines": 60,
-      "max_complexity": 12,
-      "sloc": 50
+      "lines": 76,
+      "max_complexity": 15,
+      "sloc": 66
     },
     "guardrail_hub.docs_render": {
       "functions": 8,
@@ -328,10 +328,10 @@
       "sloc": 13
     },
     "guardrail_hub.gitio": {
-      "functions": 14,
-      "lines": 184,
-      "max_complexity": 9,
-      "sloc": 145
+      "functions": 15,
+      "lines": 201,
+      "max_complexity": 8,
+      "sloc": 160
     },
     "guardrail_hub.history": {
       "functions": 4,
@@ -340,10 +340,10 @@
       "sloc": 78
     },
     "guardrail_hub.hotspots": {
-      "functions": 2,
-      "lines": 69,
-      "max_complexity": 7,
-      "sloc": 55
+      "functions": 6,
+      "lines": 144,
+      "max_complexity": 6,
+      "sloc": 117
     },
     "guardrail_hub.installer": {
       "functions": 11,
@@ -365,9 +365,9 @@
     },
     "guardrail_hub.models": {
       "functions": 4,
-      "lines": 180,
+      "lines": 187,
       "max_complexity": 4,
-      "sloc": 137
+      "sloc": 143
     },
     "guardrail_hub.repo_scan": {
       "functions": 7,
@@ -376,10 +376,10 @@
       "sloc": 127
     },
     "guardrail_hub.store": {
-      "functions": 11,
-      "lines": 174,
+      "functions": 12,
+      "lines": 207,
       "max_complexity": 6,
-      "sloc": 150
+      "sloc": 181
     },
     "guardrail_hub.web": {
       "functions": 18,
@@ -469,23 +469,23 @@
       },
       "Gitio": {
         "classes": 0,
-        "functions": 14,
+        "functions": 15,
         "largest_module": "guardrail_hub.gitio",
-        "largest_module_lines": 184,
-        "lines": 184,
+        "largest_module_lines": 201,
+        "lines": 201,
         "modules": 1,
         "public_symbols": 13,
-        "sloc": 145
+        "sloc": 160
       },
       "History": {
         "classes": 1,
-        "functions": 14,
-        "largest_module": "guardrail_hub.history",
-        "largest_module_lines": 93,
-        "lines": 379,
+        "functions": 18,
+        "largest_module": "guardrail_hub.hotspots",
+        "largest_module_lines": 144,
+        "lines": 470,
         "modules": 5,
-        "public_symbols": 11,
-        "sloc": 313
+        "public_symbols": 12,
+        "sloc": 391
       },
       "Installer": {
         "classes": 0,
@@ -521,11 +521,11 @@
         "classes": 11,
         "functions": 4,
         "largest_module": "guardrail_hub.models",
-        "largest_module_lines": 180,
-        "lines": 180,
+        "largest_module_lines": 187,
+        "lines": 187,
         "modules": 1,
         "public_symbols": 11,
-        "sloc": 137
+        "sloc": 143
       },
       "RepoScan": {
         "classes": 0,
@@ -539,13 +539,13 @@
       },
       "Store": {
         "classes": 1,
-        "functions": 11,
+        "functions": 12,
         "largest_module": "guardrail_hub.store",
-        "largest_module_lines": 174,
-        "lines": 174,
+        "largest_module_lines": 207,
+        "lines": 207,
         "modules": 1,
         "public_symbols": 1,
-        "sloc": 150
+        "sloc": 181
       },
       "Web": {
         "classes": 0,
@@ -561,13 +561,13 @@
     "max_module": "guardrail_hub.installer",
     "max_module_lines": 367,
     "modules_over_800": [],
-    "total_lines": 2770,
+    "total_lines": 2918,
     "total_modules": 22,
-    "total_sloc": 2272
+    "total_sloc": 2402
   },
   "tests": {
-    "ratio": 2.06,
-    "src_lines": 2770,
-    "test_lines": 5706
+    "ratio": 1.98,
+    "src_lines": 2918,
+    "test_lines": 5770
   }
 }

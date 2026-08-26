@@ -28,7 +28,7 @@ The one git subprocess seam (rev-parse, status, first-parent log, show, clone/fe
 - def `checkout_reset` — Hard-repoint the local ``branch`` (and worktree) at the remote-tracking tip.
 - def `first_parent_log` — ``(short sha, YYYY-MM-DD)`` per first-parent commit of ``ref`` touching ``path``.
 - def `show_file` — File content at a commit. Raises RepoAccessError when absent at that commit.
-- def `first_parent_changes` — Changed paths per first-parent commit of ``ref``, newest first.
+- def `first_parent_numstat` — ``(date YYYY-MM-DD, [(path, churn_lines), ...])`` per first-parent commit.
 
 ## Dependencies
 

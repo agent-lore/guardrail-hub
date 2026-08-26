@@ -21,14 +21,6 @@ classDiagram
     +headroom int | None
     +level BudgetLevel
   }
-  class ComponentHotspot {
-    +name str
-    +churn_lines int
-    +lines int
-    +max_complexity int
-    +functions_over_10 int
-    +score int
-  }
   class ComponentRow {
     +name str
     +tier str
@@ -50,6 +42,7 @@ classDiagram
     +changes_a int
     +changes_b int
     +strength float
+    +weighted_co float
   }
   class DriftReport {
     +repo str
@@ -66,6 +59,15 @@ classDiagram
     +sha str
     +date datetime.date
     +metrics Mapping[str, Any]
+  }
+  class ModuleHotspot {
+    +module str
+    +component str
+    +churn float
+    +commits int
+    +sloc int
+    +max_complexity int
+    +score float
   }
   class RepoEntry {
     +name str

@@ -150,35 +150,52 @@ def show_file(repo: Path, sha: str, path: str) -> str:
     return _git(repo, "show", f"{sha}:{path}")
 
 
-def first_parent_changes(repo: Path, ref: str, max_commits: int) -> list[list[str]]:
-    """Changed paths per first-parent commit of ``ref``, newest first.
+def _resolve_rename(path: str) -> str:
+    """The *new* path from a numstat rename form.
 
-    Renames/copies (``-M``) count as the *new* path; deletions are dropped —
-    a removed module can no longer couple to anything. The ``\\x01`` sentinel
-    delimits commits so paths containing spaces parse safely.
+    numstat renders renames as ``old => new`` or ``pre/{old => new}/post``;
+    plain paths pass through unchanged.
+    """
+    if "{" in path and "}" in path and " => " in path:
+        before, _, rest = path.partition("{")
+        change, _, after = rest.partition("}")
+        return before + change.split(" => ", 1)[1] + after
+    if " => " in path:
+        return path.split(" => ", 1)[1]
+    return path
+
+
+def first_parent_numstat(
+    repo: Path, ref: str, max_commits: int
+) -> list[tuple[str, list[tuple[str, int]]]]:
+    """``(date YYYY-MM-DD, [(path, churn_lines), ...])`` per first-parent commit.
+
+    Newest first. Churn is ``added + deleted`` from ``--numstat``; binary
+    files (``-`` counts) contribute 0 churn but keep their path. Renames
+    (``-M``) count as the *new* path. The ``\\x01`` sentinel delimits commits
+    so paths containing spaces parse safely.
     """
     out = _git(
         repo,
         "log",
         "--first-parent",
         f"-n{max_commits}",
-        "--name-status",
+        "--numstat",
         "-M",
-        "--format=%x01%h",
+        "--format=%x01%cs",
         ref,
     )
-    commits: list[list[str]] = []
+    commits: list[tuple[str, list[tuple[str, int]]]] = []
     for line in out.splitlines():
         if line.startswith("\x01"):
-            commits.append([])
+            commits.append((line[1:].strip(), []))
             continue
         if not line or not commits:
             continue
-        status, _, rest = line.partition("\t")
-        if not status or status[0] == "D":
+        added, _, rest = line.partition("\t")
+        deleted, _, path = rest.partition("\t")
+        if not path:
             continue
-        # rename/copy lines are "<status>\t<old>\t<new>"
-        path = rest.rpartition("\t")[2] if status[0] in "RC" else rest
-        if path:
-            commits[-1].append(path)
+        churn = (int(added) if added.isdigit() else 0) + (int(deleted) if deleted.isdigit() else 0)
+        commits[-1][1].append((_resolve_rename(path), churn))
     return commits

@@ -15,7 +15,7 @@ The time-series layer: metric history mined from committed metrics.json, plus th
 | `guardrail_hub.budget_ledger` | XS | 0 | 3 |
 | `guardrail_hub.coupling` | XS | 0 | 1 |
 | `guardrail_hub.history` | XS | 0 | 4 |
-| `guardrail_hub.hotspots` | XS | 0 | 1 |
+| `guardrail_hub.hotspots` | S | 0 | 2 |
 
 ## Public API
 
@@ -38,7 +38,8 @@ The time-series layer: metric history mined from committed metrics.json, plus th
 - def `series` — Chart-ready shape: dates/shas plus one value list per requested key.
 
 ### `guardrail_hub.hotspots`
-- def `component_hotspots` — Hotspot rows for one repo, hottest first (empty when history is too short).
+- def `decay_weight` — Recency weight: 1.0 for the newest commit, halving every 90 days.
+- def `mine_hotspots` — Hotspot rows on ``ref``'s first-parent history, hottest first.
 
 ## Dependencies
 
