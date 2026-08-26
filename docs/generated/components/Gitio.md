@@ -3,7 +3,7 @@
 
 # Gitio
 
-The one git subprocess seam (rev-parse, status, first-parent log, show).
+The one git subprocess seam (rev-parse, status, first-parent log, show, clone/fetch).
 
 **Tier:** Core
 
@@ -11,7 +11,7 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.gitio` | S | 0 | 8 |
+| `guardrail_hub.gitio` | S | 0 | 13 |
 
 ## Public API
 
@@ -21,6 +21,11 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 - def `current_branch` — Current branch name, or the literal ``HEAD`` when detached.
 - def `branch_tip` — Sha of a local branch tip, or None when the branch does not exist.
 - def `is_dirty`
+- def `remote_url` — URL of a remote. Raises RepoAccessError when the remote does not exist.
+- def `set_remote_url`
+- def `clone` — Full single-branch clone of ``branch`` into ``dest``.
+- def `fetch` — Fetch one branch with an explicit refspec.
+- def `checkout_reset` — Hard-repoint the local ``branch`` (and worktree) at the remote-tracking tip.
 - def `first_parent_log` — ``(short sha, YYYY-MM-DD)`` per first-parent commit of ``ref`` touching ``path``.
 - def `show_file` — File content at a commit. Raises RepoAccessError when absent at that commit.
 - def `first_parent_changes` — Changed paths per first-parent commit of ``ref``, newest first.
@@ -28,6 +33,6 @@ The one git subprocess seam (rev-parse, status, first-parent log, show).
 ## Dependencies
 
 - Depends on: [Errors](Errors.md)
-- Used by: [History](History.md), [Installer](Installer.md), [RepoScan](RepoScan.md), [Store](Store.md)
+- Used by: [Checkouts](Checkouts.md), [History](History.md), [Installer](Installer.md), [RepoScan](RepoScan.md), [Store](Store.md)
 
 [← all generated docs](../README.md)

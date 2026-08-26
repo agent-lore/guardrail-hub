@@ -31,6 +31,6 @@ Frozen value types shared across tiers: snapshots, metric points, budgets, drift
 ## Dependencies
 
 - Depends on: —
-- Used by: [Budgets](Budgets.md), [Config](Config.md), [Drift](Drift.md), [History](History.md), [RepoScan](RepoScan.md), [Store](Store.md), [Web](Web.md)
+- Used by: [Budgets](Budgets.md), [Checkouts](Checkouts.md), [Config](Config.md), [Drift](Drift.md), [History](History.md), [RepoScan](RepoScan.md), [Store](Store.md), [Web](Web.md)
 
 [← all generated docs](../README.md)

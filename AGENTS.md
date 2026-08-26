@@ -49,6 +49,18 @@ The registry of monitored checkouts lives OUTSIDE this repo:
 `~/.config/guardrail-hub/`), overridable by `./config.toml` in the CWD
 (gitignored) or `GUARDRAIL_HUB_CONFIG`. `config.example.toml` is the template.
 
+**Managed checkouts**: with `[checkouts]` enabled the hub keeps its own
+default-branch clones under `$XDG_DATA_HOME/guardrail-hub/checkouts/`
+(cloned/fetched from each working copy's `origin`; one clone per checkout
+path, shared by monorepo subdir entries) and the dashboard reads those — so
+working copies parked on feature branches never distort the views. The
+`checkouts` module resolves entry paths inside `RepoStore`; fetches happen on
+serve startup (background) and the refresh routes, and fetch failures render
+as badges (`fetch failed` / `fetched <ts>`), never 500s. CLI `drift` and
+`apply` always target the working copies (the "have I finished porting?"
+question). Absent `[checkouts]`, behaviour is unchanged: worktrees are read
+directly.
+
 ## Layout
 
 Strict src layout, flat modules in three layers (import-linter enforced):
@@ -58,8 +70,9 @@ Strict src layout, flat modules in three layers (import-linter enforced):
 - **Core**: `gitio` (the ONE git subprocess seam), `repo_scan` (worktree →
   RepoSnapshot), `budgets`, `history` (first-parent metrics.json mining), `hotspots` (churn x
   complexity over the mined series), `budget_ledger` ([budgets] change events),
-  `store` (cache keyed on HEAD sha + mtimes), `docs_render` (markdown-it +
-  mermaid fences + escape-link rewriting), `drift` (normalized AST compare),
+  `checkouts` (hub-managed default-branch clones), `store` (cache keyed on
+  HEAD sha + mtimes), `docs_render` (markdown-it + mermaid fences +
+  escape-link rewriting), `drift` (normalized AST compare),
   `kit` (canon access), `installer`
 - **Entrypoints**: `web` (FastAPI app factory), `cli`, `__main__`
 

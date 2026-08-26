@@ -4,17 +4,32 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 
-from tests.conftest import commit_snapshot, git, make_metrics, make_monorepo
+from tests.conftest import clone_of, commit_snapshot, git, make_metrics, make_monorepo, make_repo
 
-from guardrail_hub.config import HubConfig, ServerConfig
+from guardrail_hub import checkouts
+from guardrail_hub.config import CheckoutsConfig, HubConfig, ServerConfig
 from guardrail_hub.models import RepoEntry
 from guardrail_hub.store import RepoStore
 
 
 def _store(entry: RepoEntry) -> RepoStore:
     return RepoStore(HubConfig(repos=(entry,), server=ServerConfig()))
+
+
+def _managed_store(tmp_path: Path) -> tuple[RepoStore, Path, Path]:
+    """A store with managed checkouts on: (store, origin repo, working copy)."""
+    origin = make_repo(tmp_path)
+    work = clone_of(origin, tmp_path / "work")
+    entry = RepoEntry(name="fixture", path=work, family="test")
+    config = HubConfig(
+        repos=(entry,),
+        server=ServerConfig(),
+        checkouts=CheckoutsConfig(enabled=True, dir=tmp_path / "data"),
+    )
+    return RepoStore(config), origin, work
 
 
 def _touch(path: Path) -> None:
@@ -80,6 +95,75 @@ def test_history_missing_repo_is_empty(tmp_path: Path) -> None:
     entry = RepoEntry(name="ghost", path=tmp_path / "nope", family="test")
 
     assert _store(entry).history(entry) == ()
+
+
+def test_managed_entries_resolve_to_clone_paths(tmp_path: Path) -> None:
+    store, _origin, work = _managed_store(tmp_path)
+
+    entry = store.entry("fixture")
+    assert entry is not None
+    assert entry.path == checkouts.clone_dir(tmp_path / "data", work)
+    assert store.entries == (entry,)
+
+
+def test_unmanaged_entries_are_config_entries(fixture_entry: RepoEntry) -> None:
+    store = _store(fixture_entry)
+
+    assert store.entries == (fixture_entry,)
+    assert store.entry("fixture") == fixture_entry
+
+
+def test_managed_snapshot_reads_clone_not_working_copy(tmp_path: Path) -> None:
+    store, origin, work = _managed_store(tmp_path)
+    store.refresh()
+    entry = store.entries[0]
+
+    # feature-branch churn in the working copy is invisible to the dashboard
+    git(work, "checkout", "-q", "-b", "feature")
+    commit_snapshot(work, make_metrics(schema=99), message="feature edit")
+    snapshot = store.snapshot(entry)
+    assert snapshot.schema == 1
+    assert snapshot.status.managed is True
+    assert snapshot.status.branch == "main"
+    assert not snapshot.status.dirty
+    assert snapshot.status.fetched_at != ""
+    assert snapshot.status.fetch_error == ""
+
+    # a commit on origin's main shows up after refresh
+    commit_snapshot(origin, make_metrics(schema=2), message="mainline")
+    store.refresh("fixture")
+    assert store.snapshot(entry).schema == 2
+
+
+def test_managed_refresh_records_fetch_error(tmp_path: Path) -> None:
+    store, origin, _work = _managed_store(tmp_path)
+    store.refresh()
+    shutil.rmtree(origin)
+
+    store.refresh()
+    snapshot = store.snapshot(store.entries[0])
+
+    assert snapshot.status.fetch_error != ""
+    assert snapshot.has_metrics  # last-fetched state still renders
+
+
+def test_managed_before_first_fetch_renders_error_card(tmp_path: Path) -> None:
+    store, _origin, _work = _managed_store(tmp_path)
+
+    snapshot = store.snapshot(store.entries[0])  # no refresh yet: clone absent
+
+    assert snapshot.status.present is False
+    assert "checkout not found" in snapshot.status.error
+
+
+def test_unmanaged_refresh_never_fetches(fixture_entry: RepoEntry) -> None:
+    store = _store(fixture_entry)
+    first = store.snapshot(fixture_entry)
+
+    store.refresh()
+
+    assert store.snapshot(fixture_entry) is not first
+    assert store.snapshot(fixture_entry).status.managed is False
 
 
 def test_snapshot_invalidated_by_subdir_regen(tmp_path: Path) -> None:

@@ -87,6 +87,9 @@ classDiagram
     +dirty bool
     +head_sha str
     +error str
+    +managed bool
+    +fetched_at str
+    +fetch_error str
   }
   DriftReport "1" --> "0..*" FileDrift : files
   RepoSnapshot "1" --> "0..*" BudgetStatus : budgets

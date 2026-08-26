@@ -9,6 +9,8 @@ cache and runs in worker threads so one slow ``git`` never blocks the loop.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -73,7 +75,19 @@ def _worst_level(snapshot: RepoSnapshot) -> str:
 
 def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> FastAPI:
     store = (store_factory or RepoStore)(config)
-    app = FastAPI(title="Guardrail Hub")
+
+    @asynccontextmanager
+    async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+        # Kick off the initial clone/fetch of every managed checkout without
+        # blocking startup; until a clone lands its card shows an error badge.
+        if config.checkouts.enabled:
+            app.state.fetch_tasks = [
+                asyncio.create_task(asyncio.to_thread(store.refresh, entry.name))
+                for entry in config.repos
+            ]
+        yield
+
+    app = FastAPI(title="Guardrail Hub", lifespan=_lifespan)
     templates = Jinja2Templates(directory=TEMPLATE_DIR)
     templates.env.filters["short"] = lambda sha: sha[:7]
     templates.env.globals["kit_version"] = kit_version()
@@ -101,6 +115,9 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                         "branch": s.status.branch,
                         "dirty": s.status.dirty,
                         "error": s.status.error,
+                        "managed": s.status.managed,
+                        "fetched_at": s.status.fetched_at,
+                        "fetch_error": s.status.fetch_error,
                     }
                     for s in snapshots
                 },
@@ -276,13 +293,17 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
 
     @app.post("/refresh")
     async def refresh_all(request: Request) -> RedirectResponse:
-        store.refresh()
+        # Fetch-then-forget per repo, fanned out; waits so the redirect lands
+        # on fresh state (the manual button means "show me now").
+        await asyncio.gather(
+            *(asyncio.to_thread(store.refresh, entry.name) for entry in store.entries)
+        )
         return RedirectResponse(request.headers.get("referer", "/"), status_code=303)
 
     @app.post("/repos/{name}/refresh")
     async def refresh_repo(request: Request, name: str) -> RedirectResponse:
         _entry_or_404(name)
-        store.refresh(name)
+        await asyncio.to_thread(store.refresh, name)
         return RedirectResponse(request.headers.get("referer", f"/repos/{name}"), status_code=303)
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

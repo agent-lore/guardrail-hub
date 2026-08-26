@@ -11,6 +11,7 @@ graph TD
   end
   subgraph tier_Core["Core"]
     Budgets
+    Checkouts
     DocsRender
     Drift
     Gitio
@@ -27,6 +28,7 @@ graph TD
     Models
   end
   click Budgets "components/Budgets.md"
+  click Checkouts "components/Checkouts.md"
   click Cli "components/Cli.md"
   click Config "components/Config.md"
   click DocsRender "components/DocsRender.md"
@@ -42,6 +44,10 @@ graph TD
   click Store "components/Store.md"
   click Web "components/Web.md"
   Budgets --> Models
+  Checkouts --> Config
+  Checkouts --> Errors
+  Checkouts --> Gitio
+  Checkouts --> Models
   Cli --> Config
   Cli --> Drift
   Cli --> Errors
@@ -64,6 +70,7 @@ graph TD
   RepoScan --> Errors
   RepoScan --> Gitio
   RepoScan --> Models
+  Store --> Checkouts
   Store --> Config
   Store --> Errors
   Store --> Gitio
@@ -79,22 +86,25 @@ graph TD
   Web --> Models
   Web --> Store
   linkStyle 0 stroke:#bbb
-  linkStyle 1 stroke:#999,stroke-dasharray:4
-  linkStyle 3 stroke:#999,stroke-dasharray:4
-  linkStyle 7 stroke:#bbb
-  linkStyle 8 stroke:#bbb
-  linkStyle 10 stroke:#bbb
+  linkStyle 1 stroke:#bbb
+  linkStyle 2 stroke:#bbb
+  linkStyle 4 stroke:#bbb
+  linkStyle 5 stroke:#999,stroke-dasharray:4
+  linkStyle 7 stroke:#999,stroke-dasharray:4
   linkStyle 11 stroke:#bbb
   linkStyle 12 stroke:#bbb
   linkStyle 14 stroke:#bbb
   linkStyle 15 stroke:#bbb
+  linkStyle 16 stroke:#bbb
   linkStyle 18 stroke:#bbb
-  linkStyle 20 stroke:#bbb
+  linkStyle 19 stroke:#bbb
   linkStyle 22 stroke:#bbb
-  linkStyle 23 stroke:#bbb
   linkStyle 24 stroke:#bbb
-  linkStyle 27 stroke:#bbb
-  linkStyle 29 stroke:#999,stroke-dasharray:4
+  linkStyle 26 stroke:#bbb
+  linkStyle 28 stroke:#bbb
+  linkStyle 29 stroke:#bbb
+  linkStyle 32 stroke:#bbb
   linkStyle 34 stroke:#999,stroke-dasharray:4
-  linkStyle 35 stroke:#999,stroke-dasharray:4
+  linkStyle 39 stroke:#999,stroke-dasharray:4
+  linkStyle 40 stroke:#999,stroke-dasharray:4
 ```

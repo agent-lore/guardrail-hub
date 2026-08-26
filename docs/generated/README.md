@@ -27,7 +27,7 @@ Do not edit these files by hand.
 
 ## Components
 
-Per-component drill-down pages: [Budgets](components/Budgets.md) · [Cli](components/Cli.md) · [Config](components/Config.md) · [DocsRender](components/DocsRender.md) · [Drift](components/Drift.md) · [Errors](components/Errors.md) · [Gitio](components/Gitio.md) · [History](components/History.md) · [Installer](components/Installer.md) · [Kit](components/Kit.md) · [Logging](components/Logging.md) · [Models](components/Models.md) · [RepoScan](components/RepoScan.md) · [Store](components/Store.md) · [Web](components/Web.md)
+Per-component drill-down pages: [Budgets](components/Budgets.md) · [Checkouts](components/Checkouts.md) · [Cli](components/Cli.md) · [Config](components/Config.md) · [DocsRender](components/DocsRender.md) · [Drift](components/Drift.md) · [Errors](components/Errors.md) · [Gitio](components/Gitio.md) · [History](components/History.md) · [Installer](components/Installer.md) · [Kit](components/Kit.md) · [Logging](components/Logging.md) · [Models](components/Models.md) · [RepoScan](components/RepoScan.md) · [Store](components/Store.md) · [Web](components/Web.md)
 
 ## Legend
 

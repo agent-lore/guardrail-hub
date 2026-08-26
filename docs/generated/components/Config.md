@@ -11,12 +11,13 @@ XDG-discovered TOML registry of monitored checkouts + server settings, env-overr
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.config` | S | 2 | 2 |
+| `guardrail_hub.config` | S | 3 | 2 |
 
 ## Public API
 
 ### `guardrail_hub.config`
 - class `ServerConfig`
+- class `CheckoutsConfig` — Hub-managed clones: read committed default-branch state, not worktrees.
 - class `HubConfig`
 - def `find_config_path` — Locate the active config file via env var or the default candidates.
 - def `load_config` — Load, validate, and env-override the hub config.
@@ -24,6 +25,6 @@ XDG-discovered TOML registry of monitored checkouts + server settings, env-overr
 ## Dependencies
 
 - Depends on: [Errors](Errors.md), [Models](Models.md)
-- Used by: [Cli](Cli.md), [Store](Store.md), [Web](Web.md)
+- Used by: [Checkouts](Checkouts.md), [Cli](Cli.md), [Store](Store.md), [Web](Web.md)
 
 [← all generated docs](../README.md)

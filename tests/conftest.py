@@ -157,6 +157,25 @@ def commit_files(repo: Path, files: dict[str, str], message: str = "change") -> 
     return _run(repo, "rev-parse", "--short", "HEAD").strip()
 
 
+def add_origin(repo: Path, url: Path | str) -> None:
+    """Point a fixture repo's ``origin`` at a local path (or any URL)."""
+    _run(repo, "remote", "add", "origin", str(url))
+
+
+def clone_of(origin: Path, dest: Path) -> Path:
+    """A real ``git clone`` of a fixture repo — the 'working copy' in checkout tests."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "clone", "--quiet", str(origin), str(dest)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    _run(dest, "config", "user.email", "test@example.com")
+    _run(dest, "config", "user.name", "Test")
+    return dest
+
+
 @pytest.fixture
 def fixture_repo(tmp_path: Path) -> Path:
     return make_repo(tmp_path)

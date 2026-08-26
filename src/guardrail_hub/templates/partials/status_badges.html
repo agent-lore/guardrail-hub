@@ -14,5 +14,10 @@
     {% if status.error %}
       <span class="badge badge-missing" title="{{ status.error }}">{{ status.error }}</span>
     {% endif %}
+    {% if status.managed and status.fetch_error %}
+      <span class="badge badge-missing" title="{{ status.fetch_error }}{% if status.fetched_at %} — serving state fetched {{ status.fetched_at }}{% endif %}">fetch failed</span>
+    {% elif status.managed and status.fetched_at %}
+      <span class="badge badge-managed" title="hub-managed clone of {{ snapshot.entry.default_branch }}, fetched {{ status.fetched_at }}">fetched {{ status.fetched_at }}</span>
+    {% endif %}
   {% endif %}
 </span>

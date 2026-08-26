@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import os
 import tomllib
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +29,7 @@ __all__ = [
     "DEFAULT_HOST",
     "DEFAULT_LOG_LEVEL",
     "DEFAULT_PORT",
+    "CheckoutsConfig",
     "HubConfig",
     "ServerConfig",
     "find_config_path",
@@ -45,6 +46,13 @@ _CONFIG_FILENAME = "config.toml"
 # ── Dataclasses ────────────────────────────────────────────────────────
 
 
+def _default_checkouts_dir() -> Path:
+    """XDG data home for the hub's managed clones (``~/.local/share`` fallback)."""
+    xdg = os.environ.get("XDG_DATA_HOME")
+    base = Path(xdg) if xdg else Path.home() / ".local" / "share"
+    return base / "guardrail-hub" / "checkouts"
+
+
 @dataclass(frozen=True)
 class ServerConfig:
     host: str = DEFAULT_HOST
@@ -52,10 +60,23 @@ class ServerConfig:
 
 
 @dataclass(frozen=True)
+class CheckoutsConfig:
+    """Hub-managed clones: read committed default-branch state, not worktrees.
+
+    Disabled (no ``[checkouts]`` table) keeps today's behaviour: the dashboard
+    reads the registered working copies directly.
+    """
+
+    enabled: bool = False
+    dir: Path = field(default_factory=_default_checkouts_dir)
+
+
+@dataclass(frozen=True)
 class HubConfig:
     repos: tuple[RepoEntry, ...]
     server: ServerConfig
     log_level: str = DEFAULT_LOG_LEVEL
+    checkouts: CheckoutsConfig = field(default_factory=CheckoutsConfig)
 
     def repo(self, name: str) -> RepoEntry | None:
         for entry in self.repos:
@@ -128,6 +149,13 @@ def _optional_int(table: dict[str, Any], key: str, default: int, where: str) -> 
     return value
 
 
+def _optional_bool(table: dict[str, Any], key: str, default: bool, where: str) -> bool:
+    value = table.get(key, default)
+    if not isinstance(value, bool):
+        raise ConfigError(f"{where}: {key!r} must be a boolean")
+    return value
+
+
 def _optional_subdir(table: dict[str, Any], where: str) -> str:
     """A relative path inside the checkout (monorepos); empty = the checkout root."""
     value = table.get("subdir", "")
@@ -176,10 +204,37 @@ def _parse_server(raw: Any) -> ServerConfig:
     )
 
 
+def _parse_checkouts(raw: Any) -> CheckoutsConfig:
+    """Absent table = disabled (today's behaviour); present table enables by default."""
+    if raw is None:
+        return CheckoutsConfig()
+    if not isinstance(raw, dict):
+        raise ConfigError("[checkouts] must be a table")
+    where = "[checkouts]"
+    enabled = _optional_bool(raw, "enabled", True, where)
+    raw_dir = raw.get("dir")
+    if raw_dir is None:
+        return CheckoutsConfig(enabled=enabled)
+    if not isinstance(raw_dir, str) or not raw_dir.strip():
+        raise ConfigError(f"{where}: 'dir' must be a non-empty string")
+    return CheckoutsConfig(enabled=enabled, dir=Path(raw_dir.strip()).expanduser())
+
+
+def _parse_bool_env(name: str, value: str) -> bool:
+    lowered = value.strip().lower()
+    if lowered in ("1", "true", "yes", "on"):
+        return True
+    if lowered in ("0", "false", "no", "off"):
+        return False
+    raise ConfigError(f"{name} must be a boolean (1/0/true/false), got {value!r}")
+
+
 def _apply_env_overrides(config: HubConfig) -> HubConfig:
     host = os.environ.get("GUARDRAIL_HUB_HOST")
     port = os.environ.get("GUARDRAIL_HUB_PORT")
     log_level = os.environ.get("GUARDRAIL_HUB_LOG_LEVEL")
+    checkouts_enabled = os.environ.get("GUARDRAIL_HUB_CHECKOUTS")
+    checkouts_dir = os.environ.get("GUARDRAIL_HUB_CHECKOUTS_DIR")
     server = config.server
     if host:
         server = replace(server, host=host)
@@ -191,6 +246,15 @@ def _apply_env_overrides(config: HubConfig) -> HubConfig:
     result = replace(config, server=server)
     if log_level:
         result = replace(result, log_level=log_level)
+    checkouts = result.checkouts
+    if checkouts_enabled:
+        checkouts = replace(
+            checkouts, enabled=_parse_bool_env("GUARDRAIL_HUB_CHECKOUTS", checkouts_enabled)
+        )
+    if checkouts_dir:
+        checkouts = replace(checkouts, dir=Path(checkouts_dir).expanduser())
+    if checkouts is not result.checkouts:
+        result = replace(result, checkouts=checkouts)
     return result
 
 
@@ -207,5 +271,6 @@ def load_config(path: Path | None = None) -> HubConfig:
         repos=_parse_repos(raw.get("repos")),
         server=_parse_server(raw.get("server")),
         log_level=_optional_str(raw, "log_level", DEFAULT_LOG_LEVEL, "config"),
+        checkouts=_parse_checkouts(raw.get("checkouts")),
     )
     return _apply_env_overrides(config)

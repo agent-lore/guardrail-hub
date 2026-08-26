@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import shutil
+import time
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from tests.conftest import commit_files, git, make_metrics, make_repo
+from tests.conftest import clone_of, commit_files, commit_snapshot, git, make_metrics, make_repo
 
-from guardrail_hub.config import HubConfig, ServerConfig
+from guardrail_hub import checkouts
+from guardrail_hub.config import CheckoutsConfig, HubConfig, ServerConfig
 from guardrail_hub.models import RepoEntry
 from guardrail_hub.web import create_app
 
@@ -208,3 +211,74 @@ def test_other_docs_have_no_edge_legend(client: TestClient) -> None:
     comp = client.get("/repos/fixture/docs/components/Core.md")
     if comp.status_code == 200:
         assert "Reading the edges" not in comp.text
+
+
+# ── Managed checkouts ──────────────────────────────────────────────────
+
+
+def _managed_config(tmp_path: Path) -> tuple[HubConfig, Path, Path]:
+    """(config, origin, working copy) with [checkouts] enabled in tmp dirs."""
+    origin = make_repo(tmp_path)
+    work = clone_of(origin, tmp_path / "work")
+    config = HubConfig(
+        repos=(RepoEntry(name="fixture", path=work, family="test"),),
+        server=ServerConfig(),
+        checkouts=CheckoutsConfig(enabled=True, dir=tmp_path / "data"),
+    )
+    return config, origin, work
+
+
+def test_managed_lifespan_clones_on_startup(tmp_path: Path) -> None:
+    config, _origin, work = _managed_config(tmp_path)
+    clone = checkouts.clone_dir(tmp_path / "data", work)
+
+    with TestClient(create_app(config)) as client:
+        assert client.get("/health").status_code == 200  # serving before clones land
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and not (clone / ".git").is_dir():
+            time.sleep(0.05)  # background startup fetch runs on the portal loop
+        assert (clone / ".git").is_dir()
+
+
+def test_managed_overview_ignores_dirty_feature_branch(tmp_path: Path) -> None:
+    config, _origin, work = _managed_config(tmp_path)
+    git(work, "checkout", "-q", "-b", "feature")
+    (work / "scratch.txt").write_text("wip", encoding="utf-8")  # dirty worktree
+
+    client = TestClient(create_app(config))
+    client.post("/refresh", follow_redirects=False)
+    page = client.get("/").text
+
+    assert "fetched" in page
+    assert "dirty" not in page
+    assert "on feature" not in page
+
+
+def test_managed_refresh_pulls_new_origin_commit(tmp_path: Path) -> None:
+    config, origin, _work = _managed_config(tmp_path)
+    client = TestClient(create_app(config))
+    client.post("/refresh", follow_redirects=False)
+
+    commit_snapshot(
+        origin, make_metrics(graph={"cross_component_edges": 42}), message="mainline advance"
+    )
+    assert client.post("/repos/fixture/refresh", follow_redirects=False).status_code == 303
+
+    health = client.get("/health").json()
+    assert health["repos"]["fixture"]["managed"] is True
+    assert health["repos"]["fixture"]["fetch_error"] == ""
+    data = client.get("/repos/fixture/history.json?keys=graph.cross_component_edges").json()
+    assert data["series"]["graph.cross_component_edges"][-1] == 42
+
+
+def test_managed_broken_origin_is_badge_not_500(tmp_path: Path) -> None:
+    config, origin, _work = _managed_config(tmp_path)
+    client = TestClient(create_app(config))
+    client.post("/refresh", follow_redirects=False)
+    shutil.rmtree(origin)
+
+    client.post("/refresh", follow_redirects=False)
+    page = client.get("/")
+
+    assert page.status_code == 200
+    assert "fetch failed" in page.text

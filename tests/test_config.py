@@ -164,3 +164,77 @@ def test_repo_subdir_rejects_escapes(tmp_path: Path) -> None:
 
     with pytest.raises(ConfigError, match="relative path inside the checkout"):
         load_config(_write(tmp_path / "config.toml", content))
+
+
+def test_checkouts_absent_is_disabled_with_xdg_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+
+    config = load_config(_write(tmp_path / "config.toml"))
+
+    assert config.checkouts.enabled is False
+    assert config.checkouts.dir == tmp_path / "data" / "guardrail-hub" / "checkouts"
+
+
+def test_checkouts_default_dir_without_xdg(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("XDG_DATA_HOME", raising=False)
+
+    config = load_config(_write(tmp_path / "config.toml"))
+
+    assert config.checkouts.dir == Path.home() / ".local" / "share" / "guardrail-hub" / "checkouts"
+
+
+def test_checkouts_table_enables_by_default(tmp_path: Path) -> None:
+    config = load_config(_write(tmp_path / "config.toml", MINIMAL + "\n[checkouts]\n"))
+
+    assert config.checkouts.enabled is True
+
+
+def test_checkouts_dir_expands_user(tmp_path: Path) -> None:
+    content = MINIMAL + '\n[checkouts]\nenabled = false\ndir = "~/clones"\n'
+
+    config = load_config(_write(tmp_path / "config.toml", content))
+
+    assert config.checkouts.enabled is False
+    assert config.checkouts.dir == Path.home() / "clones"
+
+
+@pytest.mark.parametrize(
+    "content, fragment",
+    [
+        ('checkouts = "yes"\n' + MINIMAL, r"\[checkouts\] must be a table"),
+        (MINIMAL + '\n[checkouts]\nenabled = "yes"\n', "boolean"),
+        (MINIMAL + "\n[checkouts]\ndir = 7\n", "'dir'"),
+    ],
+)
+def test_invalid_checkouts_raise(tmp_path: Path, content: str, fragment: str) -> None:
+    with pytest.raises(ConfigError, match=fragment):
+        load_config(_write(tmp_path / "config.toml", content))
+
+
+def test_checkouts_env_overrides(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GUARDRAIL_HUB_CHECKOUTS", "true")
+    monkeypatch.setenv("GUARDRAIL_HUB_CHECKOUTS_DIR", "~/elsewhere")
+
+    config = load_config(_write(tmp_path / "config.toml"))
+
+    assert config.checkouts.enabled is True
+    assert config.checkouts.dir == Path.home() / "elsewhere"
+
+
+def test_checkouts_env_disables_file_setting(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GUARDRAIL_HUB_CHECKOUTS", "0")
+
+    config = load_config(_write(tmp_path / "config.toml", MINIMAL + "\n[checkouts]\n"))
+
+    assert config.checkouts.enabled is False
+
+
+def test_bad_checkouts_env_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GUARDRAIL_HUB_CHECKOUTS", "maybe")
+
+    with pytest.raises(ConfigError, match="GUARDRAIL_HUB_CHECKOUTS"):
+        load_config(_write(tmp_path / "config.toml"))

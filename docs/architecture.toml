@@ -35,7 +35,8 @@ Drift      = "AST-normalized comparison of a repo's kit copy against the canonic
 Installer  = "guardrail-hub apply: writes the kit + a prefilled architecture.toml, prints the wiring."
 Kit        = "Access to the canonical kit: files, manifest roster, version."
 DocsRender = "Markdown rendering for generated docs: mermaid fences, escape-link rewriting, containment."
-Gitio      = "The one git subprocess seam (rev-parse, status, first-parent log, show)."
+Gitio      = "The one git subprocess seam (rev-parse, status, first-parent log, show, clone/fetch)."
+Checkouts  = "Hub-managed default-branch clones of registered repos: resolve entry paths, clone, fetch + hard-reset refresh."
 Config     = "XDG-discovered TOML registry of monitored checkouts + server settings, env-overridable."
 Models     = "Frozen value types shared across tiers: snapshots, metric points, budgets, drift reports."
 Logging    = "Root logging configuration."
@@ -53,6 +54,7 @@ Installer  = ["guardrail_hub.installer"]
 Kit        = ["guardrail_hub.kit"]
 DocsRender = ["guardrail_hub.docs_render"]
 Gitio      = ["guardrail_hub.gitio"]
+Checkouts  = ["guardrail_hub.checkouts"]
 Config     = ["guardrail_hub.config"]
 Models     = ["guardrail_hub.models"]
 Logging    = ["guardrail_hub.logging_setup"]
@@ -62,7 +64,7 @@ Errors     = ["guardrail_hub.errors"]
 # Dependencies must only point downward (Entrypoints -> Core -> Foundation).
 [tiers]
 Entrypoints = ["Cli", "Web"]
-Core        = ["Store", "RepoScan", "History", "Budgets", "Drift", "Installer", "Kit", "DocsRender", "Gitio"]
+Core        = ["Store", "RepoScan", "History", "Budgets", "Drift", "Installer", "Kit", "DocsRender", "Gitio", "Checkouts"]
 Foundation  = ["Config", "Models", "Logging", "Errors"]
 
 # Hard architecture budgets, checked by tests/guardrail/test_metrics_budgets.py
@@ -76,7 +78,7 @@ Foundation  = ["Config", "Models", "Logging", "Errors"]
 # little above today's largest module so a big module can't quietly balloon.
 # Ratchet the *count* of oversized modules down via modules_over_800_lines.
 [budgets]
-cross_component_edges  = 37   # measured 2026-07 (+1: installer→gitio for worktree detection); direction: down
+cross_component_edges  = 42   # measured 2026-08 (+5: managed checkouts — checkouts→gitio/config/models/errors, store→checkouts); direction: down
 component_cycles       = 0    # no component-level cycles today; keep it that way
 module_cycles          = 0    # no module-level cycles today; keep it that way
 modules_over_800_lines = 0    # no god modules today; keep it that way

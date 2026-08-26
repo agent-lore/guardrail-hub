@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from tests.conftest import commit_snapshot, git, make_metrics, make_repo
+from tests.conftest import clone_of, commit_snapshot, git, make_metrics, make_repo
 
 from guardrail_hub import gitio
 from guardrail_hub.errors import RepoAccessError
@@ -69,3 +69,67 @@ def test_show_missing_file_raises(fixture_repo: Path) -> None:
 
     with pytest.raises(RepoAccessError):
         gitio.show_file(fixture_repo, sha, "does/not/exist.json")
+
+
+def test_remote_url_round_trip(fixture_repo: Path, tmp_path: Path) -> None:
+    work = clone_of(fixture_repo, tmp_path / "work")
+
+    assert gitio.remote_url(work) == str(fixture_repo)
+    gitio.set_remote_url(work, "/elsewhere/repo")
+    assert gitio.remote_url(work) == "/elsewhere/repo"
+
+
+def test_remote_url_missing_remote(fixture_repo: Path) -> None:
+    with pytest.raises(RepoAccessError):
+        gitio.remote_url(fixture_repo)
+
+
+def test_clone_checks_out_branch(fixture_repo: Path, tmp_path: Path) -> None:
+    dest = tmp_path / "clones" / "fixture"
+
+    gitio.clone(str(fixture_repo), dest, "main")
+
+    assert gitio.is_git_repo(dest)
+    assert gitio.current_branch(dest) == "main"
+    assert gitio.head_sha(dest) == gitio.head_sha(fixture_repo)
+
+
+def test_fetch_and_checkout_reset_fast_forward(fixture_repo: Path, tmp_path: Path) -> None:
+    dest = tmp_path / "clone"
+    gitio.clone(str(fixture_repo), dest, "main")
+    commit_snapshot(fixture_repo, make_metrics(schema=2), message="new origin commit")
+
+    gitio.fetch(dest, "main")
+    gitio.checkout_reset(dest, "main")
+
+    assert gitio.head_sha(dest) == gitio.head_sha(fixture_repo)
+    assert gitio.branch_tip(dest, "main") == gitio.head_sha(fixture_repo)
+    assert '"schema": 2' in (dest / "docs" / "generated" / "metrics.json").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_checkout_reset_converges_after_force_push(fixture_repo: Path, tmp_path: Path) -> None:
+    commit_snapshot(fixture_repo, make_metrics(schema=2), message="doomed")
+    dest = tmp_path / "clone"
+    gitio.clone(str(fixture_repo), dest, "main")
+    git(fixture_repo, "reset", "-q", "--hard", "HEAD~1")
+    commit_snapshot(fixture_repo, make_metrics(schema=3), message="rewritten")
+
+    gitio.fetch(dest, "main")
+    gitio.checkout_reset(dest, "main")
+
+    assert gitio.head_sha(dest) == gitio.head_sha(fixture_repo)
+    assert not gitio.is_dirty(dest)
+
+
+def test_checkout_reset_creates_renamed_default_branch(fixture_repo: Path, tmp_path: Path) -> None:
+    dest = tmp_path / "clone"
+    gitio.clone(str(fixture_repo), dest, "main")
+    git(fixture_repo, "branch", "-q", "-m", "main", "trunk")
+
+    gitio.fetch(dest, "trunk")
+    gitio.checkout_reset(dest, "trunk")
+
+    assert gitio.current_branch(dest) == "trunk"
+    assert gitio.branch_tip(dest, "trunk") == gitio.head_sha(fixture_repo)

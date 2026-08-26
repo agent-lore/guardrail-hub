@@ -24,6 +24,6 @@ GuardrailHubError hierarchy (ConfigError, RepoAccessError, KitError).
 ## Dependencies
 
 - Depends on: —
-- Used by: [Cli](Cli.md), [Config](Config.md), [Gitio](Gitio.md), [History](History.md), [Installer](Installer.md), [Kit](Kit.md), [RepoScan](RepoScan.md), [Store](Store.md)
+- Used by: [Checkouts](Checkouts.md), [Cli](Cli.md), [Config](Config.md), [Gitio](Gitio.md), [History](History.md), [Installer](Installer.md), [Kit](Kit.md), [RepoScan](RepoScan.md), [Store](Store.md)
 
 [← all generated docs](../README.md)

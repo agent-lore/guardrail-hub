@@ -3,13 +3,25 @@
 # machine. A ./config.toml in the CWD (gitignored) overrides for development;
 # GUARDRAIL_HUB_CONFIG overrides everything.
 #
-# Env overrides: GUARDRAIL_HUB_HOST, GUARDRAIL_HUB_PORT, GUARDRAIL_HUB_LOG_LEVEL.
+# Env overrides: GUARDRAIL_HUB_HOST, GUARDRAIL_HUB_PORT, GUARDRAIL_HUB_LOG_LEVEL,
+# GUARDRAIL_HUB_CHECKOUTS, GUARDRAIL_HUB_CHECKOUTS_DIR.
 
 log_level = "info"
 
 [server]
 host = "127.0.0.1"
 port = 8600
+
+# Hub-managed clones: with [checkouts] enabled the dashboard reads its own
+# default-branch clones (cloned/fetched from each working copy's `origin`)
+# instead of your live worktrees — so feature-branch or dirty checkouts never
+# distort the views. `guardrail-hub drift` (CLI) and `apply` still target the
+# working copies. Clones refresh on serve startup (in the background — cards
+# may show "checkout not found" until the first clone lands) and via the
+# dashboard's refresh buttons. Omit this table to keep reading worktrees.
+[checkouts]
+enabled = true
+# dir = "~/.local/share/guardrail-hub/checkouts"   # default shown
 
 [[repos]]
 name = "lithos"

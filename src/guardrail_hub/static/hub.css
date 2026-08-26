@@ -301,6 +301,13 @@ h1 {
   color: var(--breach);
 }
 
+.badge-managed {
+  background: #e2efe8;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  text-transform: none;
+}
+
 .traffic {
   border-radius: 0.5rem;
   font-size: 0.78rem;

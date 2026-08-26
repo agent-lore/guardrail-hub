@@ -4,15 +4,24 @@ No database: everything derives from the checkouts, so the cache key derives
 from checkout state. Snapshots key on ``(HEAD sha, mtime(metrics.json),
 mtime(architecture.toml))`` — the mtimes catch a regenerated-but-uncommitted
 ``docs/generated/`` that HEAD alone would miss. Histories key on the default
-branch tip. ``refresh()`` simply forgets, so the next access re-reads disk.
+branch tip.
+
+With ``[checkouts]`` enabled, ``entries``/``entry()`` hand out entries whose
+``path`` points at the hub-managed clone, so every reader downstream works on
+committed default-branch state; ``refresh()`` then fetches the clone before
+forgetting caches. The managed-status badges (``fetched_at``/``fetch_error``)
+are not part of the snapshot cache key — they change exactly when ``refresh``
+clears the caches, so they re-render then. Disabled, ``refresh()`` degenerates
+to today's clear-only semantics and never touches the working copies.
 """
 
 from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from dataclasses import replace
 
-from guardrail_hub import budget_ledger, coupling, gitio, history, repo_scan
+from guardrail_hub import budget_ledger, checkouts, coupling, gitio, history, repo_scan
 from guardrail_hub.config import HubConfig
 from guardrail_hub.errors import RepoAccessError
 from guardrail_hub.models import BudgetEvent, CouplingPair, MetricPoint, RepoEntry, RepoSnapshot
@@ -44,7 +53,10 @@ class RepoStore:
 
     def __init__(self, config: HubConfig) -> None:
         self._config = config
+        self._resolved = {e.name: checkouts.resolve(config.checkouts, e) for e in config.repos}
         self._lock = threading.Lock()
+        self._fetch_errors: dict[str, str] = {}
+        self._fetch_locks = {e.name: threading.Lock() for e in config.repos}
         self._snapshots: dict[str, tuple[_SnapshotKey, RepoSnapshot]] = {}
         self._histories: dict[str, tuple[str, tuple[MetricPoint, ...]]] = {}
         self._ledgers: dict[str, tuple[str, tuple[BudgetEvent, ...]]] = {}
@@ -52,10 +64,10 @@ class RepoStore:
 
     @property
     def entries(self) -> tuple[RepoEntry, ...]:
-        return self._config.repos
+        return tuple(self._resolved[e.name] for e in self._config.repos)
 
     def entry(self, name: str) -> RepoEntry | None:
-        return self._config.repo(name)
+        return self._resolved.get(name)
 
     def snapshot(self, entry: RepoEntry) -> RepoSnapshot:
         key = _snapshot_key(entry)
@@ -64,6 +76,16 @@ class RepoStore:
             if cached is not None and cached[0] == key:
                 return cached[1]
         snapshot = repo_scan.scan(entry)
+        if self._config.checkouts.enabled:
+            with self._lock:
+                fetch_error = self._fetch_errors.get(entry.name, "")
+            status = replace(
+                snapshot.status,
+                managed=True,
+                fetched_at=checkouts.last_fetch(entry.path),
+                fetch_error=fetch_error,
+            )
+            snapshot = replace(snapshot, status=status)
         with self._lock:
             self._snapshots[entry.name] = (key, snapshot)
         return snapshot
@@ -124,18 +146,29 @@ class RepoStore:
         return pairs
 
     def refresh(self, name: str | None = None) -> None:
-        """Forget cached state (one repo, or everything) so next access re-reads disk."""
+        """Fetch managed clones (when enabled), then forget cached state.
+
+        One repo by name, or everything. Fetch failures land in the managed
+        status badges via ``_fetch_errors`` — never raised.
+        """
+        names = [e.name for e in self._config.repos] if name is None else [name]
+        for repo_name in names:
+            self._fetch_one(repo_name)
         with self._lock:
-            if name is None:
-                self._snapshots.clear()
-                self._histories.clear()
-                self._ledgers.clear()
-                self._couplings.clear()
-            else:
-                self._snapshots.pop(name, None)
-                self._histories.pop(name, None)
-                self._ledgers.pop(name, None)
-                self._couplings.pop(name, None)
+            for repo_name in names:
+                self._snapshots.pop(repo_name, None)
+                self._histories.pop(repo_name, None)
+                self._ledgers.pop(repo_name, None)
+                self._couplings.pop(repo_name, None)
+
+    def _fetch_one(self, name: str) -> None:
+        original = self._config.repo(name)
+        if original is None or not self._config.checkouts.enabled:
+            return
+        with self._fetch_locks[name]:
+            error = checkouts.refresh(self._config.checkouts, original)
+        with self._lock:
+            self._fetch_errors[name] = error
 
 
 StoreFactory = Callable[[HubConfig], RepoStore]

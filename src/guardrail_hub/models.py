@@ -39,7 +39,12 @@ class RepoEntry:
 
 @dataclass(frozen=True)
 class RepoStatus:
-    """Where a repo checkout is right now (badges, not gates)."""
+    """Where a repo checkout is right now (badges, not gates).
+
+    ``managed``/``fetched_at``/``fetch_error`` describe a hub-managed clone:
+    when the snapshot came from one, ``branch``/``dirty`` describe the clone
+    (anomalies there signal clone corruption, not user activity).
+    """
 
     present: bool
     is_git: bool = False
@@ -48,6 +53,9 @@ class RepoStatus:
     dirty: bool = False
     head_sha: str = ""
     error: str = ""
+    managed: bool = False
+    fetched_at: str = ""
+    fetch_error: str = ""
 
 
 @dataclass(frozen=True)

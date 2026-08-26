@@ -2,7 +2,8 @@
 
 Every git invocation in the hub goes through these helpers so the rest of the
 code never touches ``subprocess`` and tests can exercise real git against tiny
-fixture repos. All helpers run with ``cwd=repo`` and raise ``RepoAccessError``
+fixture repos. All helpers run with ``cwd=repo`` (``clone`` is the one
+exception: it runs in the destination's parent) and raise ``RepoAccessError``
 on failure.
 """
 
@@ -14,9 +15,11 @@ from pathlib import Path
 from guardrail_hub.errors import RepoAccessError
 
 _TIMEOUT_S = 30
+_FETCH_TIMEOUT_S = 120
+_CLONE_TIMEOUT_S = 600
 
 
-def _git(repo: Path, *args: str) -> str:
+def _git(repo: Path, *args: str, timeout: int = _TIMEOUT_S) -> str:
     try:
         result = subprocess.run(
             ["git", *args],
@@ -24,7 +27,7 @@ def _git(repo: Path, *args: str) -> str:
             capture_output=True,
             text=True,
             check=True,
-            timeout=_TIMEOUT_S,
+            timeout=timeout,
         )
     except FileNotFoundError as exc:  # git itself missing
         raise RepoAccessError("git executable not found") from exc
@@ -63,6 +66,68 @@ def branch_tip(repo: Path, branch: str) -> str | None:
 
 def is_dirty(repo: Path) -> bool:
     return bool(_git(repo, "status", "--porcelain").strip())
+
+
+def remote_url(repo: Path, remote: str = "origin") -> str:
+    """URL of a remote. Raises RepoAccessError when the remote does not exist."""
+    return _git(repo, "remote", "get-url", remote).strip()
+
+
+def set_remote_url(repo: Path, url: str, remote: str = "origin") -> None:
+    _git(repo, "remote", "set-url", remote, url)
+
+
+def clone(url: str, dest: Path, branch: str) -> None:
+    """Full single-branch clone of ``branch`` into ``dest``.
+
+    Full (not shallow) because history mining needs every mainline blob;
+    ``--single-branch --no-tags`` bounds disk and network to the one branch
+    the hub reads. Runs in ``dest.parent`` — the one deviation from the
+    cwd=existing-repo convention.
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    _git(
+        dest.parent,
+        "clone",
+        "--quiet",
+        "--no-tags",
+        "--single-branch",
+        "--branch",
+        branch,
+        url,
+        dest.name,
+        timeout=_CLONE_TIMEOUT_S,
+    )
+
+
+def fetch(repo: Path, branch: str, remote: str = "origin") -> None:
+    """Fetch one branch with an explicit refspec.
+
+    The explicit refspec (rather than the clone's configured one) means a
+    later ``default_branch`` config change still fetches the new branch even
+    though ``--single-branch`` narrowed the stored refspec; ``+`` allows
+    force-pushed history to update the remote-tracking ref.
+    """
+    _git(
+        repo,
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        remote,
+        f"+refs/heads/{branch}:refs/remotes/{remote}/{branch}",
+        timeout=_FETCH_TIMEOUT_S,
+    )
+
+
+def checkout_reset(repo: Path, branch: str, remote: str = "origin") -> None:
+    """Hard-repoint the local ``branch`` (and worktree) at the remote-tracking tip.
+
+    ``checkout -q -f -B`` in one primitive handles fast-forward, force-pushed
+    origins, a diverged/corrupted clone, and a renamed default branch — and it
+    updates both ``refs/heads/<branch>`` (read by ``branch_tip``) and the
+    worktree (read by the scanners and doc routes).
+    """
+    _git(repo, "checkout", "-q", "-f", "-B", branch, f"{remote}/{branch}")
 
 
 def first_parent_log(repo: Path, ref: str, path: str) -> list[tuple[str, str]]:
