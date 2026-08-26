@@ -46,7 +46,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
 | Errors | 1 | 23 | 13 | 9 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 201 | 160 | 5 | 1 | 0.17 | 8 (`guardrail_hub.gitio.first_parent_numstat`) | 0 |
-| History | 5 | 470 | 391 | 2 | 3 | 0.60 | 15 (`guardrail_hub.coupling.mine_coupling`) | 2 |
+| History | 5 | 466 | 387 | 2 | 3 | 0.60 | 15 (`guardrail_hub.coupling.mine_coupling`) | 2 |
 | Installer | 1 | 367 | 304 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
@@ -57,14 +57,14 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 ## Size
 
-- Modules: **22**, lines: **2918**, SLOC: **2402**
+- Modules: **22**, lines: **2914**, SLOC: **2398**
 - Largest module: `guardrail_hub.installer` (367 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
 - Functions: **139**, cyclomatic > 10: **6**
-- Cyclomatic distribution: median **3**, p90 **8**, max **19**
+- Cyclomatic distribution: median **3**, p90 **7**, max **19**
 - Function length (lines): median 9, p90 28, max 236 (`guardrail_hub.web.create_app`); over 75: **1**
 
 Top 10 most complex functions:
@@ -93,4 +93,4 @@ Private-name reaches across module seams. Both counts can be pinned as
 ## Domain & tests
 
 - Domain models: **11** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.98** (5770 test lines / 2918 source lines)
+- Test-to-source line ratio: **1.98** (5775 test lines / 2914 source lines)

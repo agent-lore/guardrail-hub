@@ -70,10 +70,13 @@ def test_extract_greedy_dotted_module_keys() -> None:
     assert extract(metrics, "modules.fixture.gone.sloc") is None
 
 
-def test_extract_greedy_prefers_exact_single_segment() -> None:
-    metrics = {"a": {"b": {"c": 1}, "b.c": 2}}
+def test_extract_greedy_prefers_longest_joined_key() -> None:
+    # the package module is a sibling key of its submodules in the modules
+    # map — the longest joined run must win or the package entry shadows them
+    metrics = {"modules": {"fixture": {"sloc": 10}, "fixture.core": {"sloc": 120}}}
 
-    assert extract(metrics, "a.b.c") == 1
+    assert extract(metrics, "modules.fixture.core.sloc") == 120
+    assert extract(metrics, "modules.fixture.sloc") == 10
 
 
 def test_series_shape(tmp_path: Path) -> None:

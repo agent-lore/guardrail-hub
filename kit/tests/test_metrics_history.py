@@ -51,10 +51,12 @@ def test_extract_greedy_dotted_module_keys() -> None:
     assert mh.extract(metrics, "modules.pkg.gone.sloc") is None
 
 
-def test_extract_greedy_prefers_exact_single_segment() -> None:
-    # a plain segment match wins before any dot-joined run is tried
-    metrics = {"a": {"b": {"c": 1}, "b.c": 2}}
-    assert mh.extract(metrics, "a.b.c") == 1
+def test_extract_greedy_prefers_longest_joined_key() -> None:
+    # the package module "pkg" is a sibling key of "pkg.core" in the modules
+    # map — the longest joined run must win or the package entry shadows it
+    metrics = {"modules": {"pkg": {"sloc": 10}, "pkg.core": {"sloc": 120}}}
+    assert mh.extract(metrics, "modules.pkg.core.sloc") == 120
+    assert mh.extract(metrics, "modules.pkg.sloc") == 10
 
 
 def test_emit_csv_shape() -> None:

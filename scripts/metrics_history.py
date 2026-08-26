@@ -70,24 +70,20 @@ def extract(metrics: dict, dotted_key: str) -> Any:
     """Value at a dotted path (``.count`` on a list-valued path -> length).
 
     Keys that themselves contain dots — module names under ``modules.`` — are
-    matched greedily: when a single segment is absent at a dict level, the
-    longest dot-joined run of the remaining segments that IS a key there is
-    consumed instead (so ``modules.pkg.mod.sloc`` finds ``pkg.mod``).
+    matched greedily, longest joined run first: at each dict level the longest
+    dot-joined run of remaining segments that IS a key there is consumed
+    (so ``modules.pkg.mod.sloc`` finds the ``pkg.mod`` entry even though the
+    package module ``pkg`` is a sibling key).
     """
     value: Any = metrics
     parts = dotted_key.split(".")
     i = 0
     while i < len(parts):
-        part = parts[i]
-        if part == "count" and isinstance(value, list):
+        if parts[i] == "count" and isinstance(value, list):
             return len(value)
         if not isinstance(value, dict):
             return None
-        if part in value:
-            value = value[part]
-            i += 1
-            continue
-        for j in range(len(parts), i + 1, -1):
+        for j in range(len(parts), i, -1):
             joined = ".".join(parts[i:j])
             if joined in value:
                 value = value[joined]
