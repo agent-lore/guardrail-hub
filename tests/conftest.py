@@ -49,7 +49,21 @@ _METRICS_TEMPLATE: dict[str, Any] = {
         },
         "total_functions": 20,
         "functions_over_10": 0,
+        "max": 6,
+        "median": 2,
+        "p90": 5,
+        "function_lengths": {
+            "max": 40,
+            "max_function": "fixture.core.load",
+            "median": 8,
+            "over_75": 0,
+            "p90": 20,
+        },
         "top_functions": [],
+    },
+    "modules": {
+        "fixture.core": {"functions": 12, "lines": 300, "max_complexity": 6, "sloc": 200},
+        "fixture.web": {"functions": 8, "lines": 150, "max_complexity": 3, "sloc": 100},
     },
     "domain": {"models": 4, "associations": 2, "models_without_docstrings": 0},
     "seams": {

@@ -213,6 +213,27 @@ def test_other_docs_have_no_edge_legend(client: TestClient) -> None:
         assert "Reading the edges" not in comp.text
 
 
+def test_trend_keys_match_kit_default_keys() -> None:
+    """web.TREND_KEYS and the applied kit script's DEFAULT_KEYS are one list.
+
+    The applied script is byte-identical to the canon (test_kit_dogfood), so
+    this transitively pins hub <-> kit.
+    """
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    try:
+        import metrics_history  # pyright: ignore[reportMissingImports]
+    finally:
+        sys.path.pop(0)
+
+    from guardrail_hub import web
+
+    assert web.TREND_KEYS == metrics_history.DEFAULT_KEYS
+    trend_or_surface = set(web.TREND_KEYS) | {"domain.models", "mcp.tools"}
+    assert {key for key, _ in web.COMPARE_ROWS} <= trend_or_surface
+
+
 # ── Managed checkouts ──────────────────────────────────────────────────
 
 

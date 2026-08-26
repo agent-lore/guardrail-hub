@@ -62,6 +62,20 @@ def test_extract_scalar_list_count_and_missing() -> None:
     assert extract(metrics, "graph.nope") is None
 
 
+def test_extract_greedy_dotted_module_keys() -> None:
+    metrics = make_metrics()
+
+    assert extract(metrics, "modules.fixture.core.sloc") == 200
+    assert extract(metrics, "modules.fixture.web.max_complexity") == 3
+    assert extract(metrics, "modules.fixture.gone.sloc") is None
+
+
+def test_extract_greedy_prefers_exact_single_segment() -> None:
+    metrics = {"a": {"b": {"c": 1}, "b.c": 2}}
+
+    assert extract(metrics, "a.b.c") == 1
+
+
 def test_series_shape(tmp_path: Path) -> None:
     repo = make_repo(
         tmp_path,

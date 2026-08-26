@@ -24,14 +24,23 @@ from typing import Any
 
 SNAPSHOT = "docs/generated/metrics.json"
 
+# One canonical trend-key list, shared verbatim with the hub's web.TREND_KEYS
+# (a hub test asserts equality, so edit both together).
 DEFAULT_KEYS = [
     "graph.cross_component_edges",
+    "graph.cross_component_module_edges",
     "graph.component_cycles.count",
-    "graph.module_cycles.count",
+    "graph.module_cycle_count",
+    "graph.tier_skipping_edges",
     "size.modules_over_800.count",
     "size.max_module_lines",
     "size.total_sloc",
     "complexity.functions_over_10",
+    "complexity.p90",
+    "complexity.max",
+    "seams.cross_module_private_refs",
+    "seams.tests_private_imports",
+    "tests.ratio",
 ]
 
 
@@ -58,13 +67,34 @@ def iter_snapshots() -> list[tuple[str, str, dict]]:
 
 
 def extract(metrics: dict, dotted_key: str) -> Any:
+    """Value at a dotted path (``.count`` on a list-valued path -> length).
+
+    Keys that themselves contain dots — module names under ``modules.`` — are
+    matched greedily: when a single segment is absent at a dict level, the
+    longest dot-joined run of the remaining segments that IS a key there is
+    consumed instead (so ``modules.pkg.mod.sloc`` finds ``pkg.mod``).
+    """
     value: Any = metrics
-    for part in dotted_key.split("."):
+    parts = dotted_key.split(".")
+    i = 0
+    while i < len(parts):
+        part = parts[i]
         if part == "count" and isinstance(value, list):
             return len(value)
-        if not isinstance(value, dict) or part not in value:
+        if not isinstance(value, dict):
             return None
-        value = value[part]
+        if part in value:
+            value = value[part]
+            i += 1
+            continue
+        for j in range(len(parts), i + 1, -1):
+            joined = ".".join(parts[i:j])
+            if joined in value:
+                value = value[joined]
+                i = j
+                break
+        else:
+            return None
     return value
 
 

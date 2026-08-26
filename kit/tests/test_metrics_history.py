@@ -44,6 +44,19 @@ def test_extract_missing_key_is_none() -> None:
     assert mh.extract(metrics, "absent.path") is None
 
 
+def test_extract_greedy_dotted_module_keys() -> None:
+    metrics = {"modules": {"pkg.core": {"sloc": 120, "max_complexity": 7}}}
+    assert mh.extract(metrics, "modules.pkg.core.sloc") == 120
+    assert mh.extract(metrics, "modules.pkg.core.max_complexity") == 7
+    assert mh.extract(metrics, "modules.pkg.gone.sloc") is None
+
+
+def test_extract_greedy_prefers_exact_single_segment() -> None:
+    # a plain segment match wins before any dot-joined run is tried
+    metrics = {"a": {"b": {"c": 1}, "b.c": 2}}
+    assert mh.extract(metrics, "a.b.c") == 1
+
+
 def test_emit_csv_shape() -> None:
     csv = mh.emit_csv([_SNAP_A, _SNAP_B], ["graph.cross_component_edges", "items.count"])
     lines = csv.strip().splitlines()

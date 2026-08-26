@@ -35,31 +35,38 @@ STATIC_DIR = PACKAGE_ROOT / "static"
 
 MAX_FILE_BYTES = 2_000_000
 
-# Default trend keys — the kit's metrics_history DEFAULT_KEYS plus test ratio.
+# Default trend keys — identical to the kit's metrics_history DEFAULT_KEYS
+# (test_web asserts equality, so edit both together).
 TREND_KEYS = [
     "graph.cross_component_edges",
     "graph.cross_component_module_edges",
     "graph.component_cycles.count",
     "graph.module_cycle_count",
+    "graph.tier_skipping_edges",
     "size.modules_over_800.count",
     "size.max_module_lines",
     "size.total_sloc",
     "complexity.functions_over_10",
+    "complexity.p90",
+    "complexity.max",
     "seams.cross_module_private_refs",
     "seams.tests_private_imports",
     "tests.ratio",
 ]
 
-# Headline metrics for the overview cards and the compare table.
+# Headline metrics for the overview cards and the compare table — a curated
+# subset of TREND_KEYS plus the non-trend surface counts (domain/mcp).
 COMPARE_ROWS = [
     ("graph.cross_component_edges", "Cross-component edges"),
     ("graph.cross_component_module_edges", "Module-level cross edges"),
     ("graph.component_cycles.count", "Component cycles"),
     ("graph.module_cycle_count", "Module cycles"),
+    ("graph.tier_skipping_edges", "Tier-skipping edges"),
     ("size.total_sloc", "Total SLOC"),
     ("size.max_module_lines", "Largest module (lines)"),
     ("size.modules_over_800.count", "Modules > 800 lines"),
     ("complexity.functions_over_10", "Functions cx > 10"),
+    ("complexity.p90", "Complexity p90"),
     ("seams.cross_module_private_refs", "Private-access refs"),
     ("domain.models", "Domain models"),
     ("tests.ratio", "Test/src ratio"),

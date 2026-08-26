@@ -64,3 +64,25 @@ def test_no_metrics_all_unknown() -> None:
 
 def test_no_budgets_section() -> None:
     assert budget_statuses({}, make_metrics()) == ()
+
+
+def test_actuals_mirror_kit_budget_actuals() -> None:
+    """The hub's BUDGET_ACTUALS must stay in lockstep with the applied kit's map.
+
+    Key-set equality catches a new kit budget key the hub doesn't know (it
+    would silently classify grey); value equality over the hub's own committed
+    snapshot catches extractor-semantics drift between the two mirrors.
+    """
+    import json
+    from pathlib import Path
+
+    from tests.guardrail import _metrics_toolkit as mt
+
+    from guardrail_hub import budgets
+
+    assert set(budgets.BUDGET_ACTUALS) == set(mt.BUDGET_ACTUALS)
+
+    snapshot = Path("docs/generated/metrics.json")
+    real = json.loads(snapshot.read_text(encoding="utf-8"))
+    for key in sorted(mt.BUDGET_ACTUALS):
+        assert budgets.budget_actual(real, key) == mt.budget_actual(real, key), key

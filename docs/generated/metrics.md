@@ -14,10 +14,14 @@ lower a budget after improving the code to lock in the gain.
 | `component_cycles` | 0 | 0 | 0 |
 | `cross_component_edges` | 42 | 42 | 0 |
 | `cross_module_private_refs` | 0 | 0 | 0 |
-| `max_module_lines` | 363 | 800 | 437 |
+| `functions_over_10` | 6 | 6 | 0 |
+| `functions_over_75_lines` | 1 | 1 | 0 |
+| `max_function_complexity` | 19 | 19 | 0 |
+| `max_module_lines` | 367 | 800 | 433 |
 | `module_cycles` | 0 | 0 | 0 |
 | `modules_over_800_lines` | 0 | 0 | 0 |
 | `tests_private_imports` | 0 | 0 | 0 |
+| `tier_skipping_edges` | 5 | 5 | 0 |
 
 ## Import graph
 
@@ -34,7 +38,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 | Component | Modules | Lines | SLOC | Fan-in | Fan-out | Instability | Max complexity | Functions > 10 |
 |---|---:|---:|---:|---:|---:|---:|---|---:|
-| Budgets | 1 | 71 | 60 | 1 | 1 | 0.50 | 7 (`guardrail_hub.budgets.budget_statuses`) | 0 |
+| Budgets | 1 | 77 | 65 | 1 | 1 | 0.50 | 7 (`guardrail_hub.budgets.budget_statuses`) | 0 |
 | Checkouts | 1 | 93 | 77 | 1 | 4 | 0.80 | 7 (`guardrail_hub.checkouts.refresh`) | 0 |
 | Cli | 2 | 135 | 106 | 0 | 6 | 1.00 | 19 (`guardrail_hub.cli._cmd_drift`) | 1 |
 | Config | 1 | 276 | 217 | 4 | 2 | 0.33 | 8 (`guardrail_hub.config._apply_env_overrides`) | 0 |
@@ -42,39 +46,41 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
 | Errors | 1 | 23 | 13 | 9 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 184 | 145 | 5 | 1 | 0.17 | 9 (`guardrail_hub.gitio.first_parent_changes`) | 0 |
-| History | 5 | 361 | 295 | 2 | 3 | 0.60 | 12 (`guardrail_hub.coupling.mine_coupling`) | 2 |
-| Installer | 1 | 363 | 300 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
+| History | 5 | 379 | 313 | 2 | 3 | 0.60 | 12 (`guardrail_hub.coupling.mine_coupling`) | 2 |
+| Installer | 1 | 367 | 304 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
 | Models | 1 | 180 | 137 | 8 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
 | RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
 | Store | 1 | 174 | 150 | 1 | 7 | 0.88 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
-| Web | 1 | 325 | 286 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
+| Web | 1 | 332 | 291 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
 
 ## Size
 
-- Modules: **22**, lines: **2735**, SLOC: **2240**
-- Largest module: `guardrail_hub.installer` (363 lines)
+- Modules: **22**, lines: **2770**, SLOC: **2272**
+- Largest module: `guardrail_hub.installer` (367 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
 - Functions: **133**, cyclomatic > 10: **6**
+- Cyclomatic distribution: median **3**, p90 **8**, max **19**
+- Function length (lines): median 9, p90 28, max 235 (`guardrail_hub.web.create_app`); over 75: **1**
 
 Top 10 most complex functions:
 
-| Complexity | Function |
-|---:|---|
-| 19 | `guardrail_hub.cli._cmd_drift` |
-| 16 | `guardrail_hub.installer.apply_kit` |
-| 14 | `guardrail_hub.installer._tiers_from_importlinter` |
-| 12 | `guardrail_hub.coupling.mine_coupling` |
-| 12 | `guardrail_hub.drift._FoldStringConcat.visit_BinOp` |
-| 11 | `guardrail_hub.archmap.load_archmap` |
-| 10 | `guardrail_hub.drift._extras` |
-| 10 | `guardrail_hub.installer.build_architecture_skeleton` |
-| 10 | `guardrail_hub.kit.load_manifest` |
-| 9 | `guardrail_hub.drift._strip_docstrings` |
+| Complexity | Length | Function |
+|---:|---:|---|
+| 19 | 38 | `guardrail_hub.cli._cmd_drift` |
+| 16 | 67 | `guardrail_hub.installer.apply_kit` |
+| 14 | 33 | `guardrail_hub.installer._tiers_from_importlinter` |
+| 12 | 35 | `guardrail_hub.coupling.mine_coupling` |
+| 12 | 22 | `guardrail_hub.drift._FoldStringConcat.visit_BinOp` |
+| 11 | 27 | `guardrail_hub.archmap.load_archmap` |
+| 10 | 22 | `guardrail_hub.drift._extras` |
+| 10 | 60 | `guardrail_hub.installer.build_architecture_skeleton` |
+| 10 | 24 | `guardrail_hub.kit.load_manifest` |
+| 9 | 17 | `guardrail_hub.drift._strip_docstrings` |
 
 ## Seams
 
@@ -87,4 +93,4 @@ Private-name reaches across module seams. Both counts can be pinned as
 ## Domain & tests
 
 - Domain models: **11** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **2.01** (5503 test lines / 2735 source lines)
+- Test-to-source line ratio: **2.06** (5706 test lines / 2770 source lines)

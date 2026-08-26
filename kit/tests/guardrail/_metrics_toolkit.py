@@ -19,6 +19,7 @@ under ``[budgets]`` and are enforced by ``test_metrics_budgets.py``.
 from __future__ import annotations
 
 import ast
+import math
 import pathlib
 from typing import Any
 
@@ -40,9 +41,33 @@ from tests.guardrail._common import (
 )
 
 COMPLEXITY_THRESHOLD = 10
+FUNCTION_LENGTH_THRESHOLD = 75
 GOD_MODULE_LINES = 800
 
+# Every addition so far has been purely additive (readers treat missing keys
+# as gaps), so the version stays 1; bump it only on a structural break that
+# old readers would misparse.
 _SCHEMA_VERSION = 1
+
+
+def _lower_median(values: list[int]) -> int:
+    """Lower median (no interpolation, stays an int); 0 when empty."""
+    if not values:
+        return 0
+    ordered = sorted(values)
+    return ordered[(len(ordered) - 1) // 2]
+
+
+def _nearest_rank_p90(values: list[int]) -> int:
+    """Nearest-rank 90th percentile (the ceil(0.9*n)-th smallest); 0 when empty.
+
+    Nearest-rank keeps the result an actual observed int — deterministic and
+    budgetable ([budgets] values are integers).
+    """
+    if not values:
+        return 0
+    ordered = sorted(values)
+    return ordered[math.ceil(0.9 * len(ordered)) - 1]
 
 
 # --------------------------------------------------------------------------- #
@@ -159,11 +184,13 @@ def _size_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     total_lines = total_sloc = total_modules = 0
     over_800: list[str] = []
     max_module, max_lines = "", 0
+    per_module: dict[str, dict[str, int]] = {}
 
     for module, paths in sorted(module_paths().items()):
         texts = [p.read_text(encoding="utf-8") for p in paths]
         lines = sum(_physical_lines(t) for t in texts)
         sloc = sum(_sloc(t) for t in texts)
+        per_module[module] = {"lines": lines, "sloc": sloc}
         total_lines += lines
         total_sloc += sloc
         total_modules += 1
@@ -203,6 +230,7 @@ def _size_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
         "max_module": max_module,
         "max_module_lines": max_lines,
         "modules_over_800": sorted(over_800),
+        "per_module": per_module,
         "total_lines": total_lines,
         "total_modules": total_modules,
         "total_sloc": total_sloc,
@@ -246,15 +274,20 @@ def _cyclomatic(fn: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return score
 
 
-def _function_complexities(tree: ast.Module, module: str) -> list[tuple[str, int]]:
-    """(qualname, complexity) for every function/method in *module*."""
-    results: list[tuple[str, int]] = []
+def _function_complexities(tree: ast.Module, module: str) -> list[tuple[str, int, int]]:
+    """(qualname, complexity, physical length) for every function/method in *module*.
+
+    Length is the physical line span (``end_lineno - lineno + 1``), so a
+    closure-heavy factory reports its full span including nested defs.
+    """
+    results: list[tuple[str, int, int]] = []
 
     def visit(node: ast.AST, prefix: str) -> None:
         for child in ast.iter_child_nodes(node):
             if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef):
                 qualname = f"{prefix}.{child.name}"
-                results.append((qualname, _cyclomatic(child)))
+                length = (child.end_lineno or child.lineno) - child.lineno + 1
+                results.append((qualname, _cyclomatic(child), length))
                 visit(child, qualname)
             elif isinstance(child, ast.ClassDef):
                 visit(child, f"{prefix}.{child.name}")
@@ -265,29 +298,38 @@ def _function_complexities(tree: ast.Module, module: str) -> list[tuple[str, int
     return results
 
 
-def _cpp_function_complexities(module: str, paths: list[pathlib.Path]) -> list[tuple[str, int]]:
-    """(qualname, CCN) per C++ function definition, via lizard's tokenizer.
+def _cpp_function_complexities(
+    module: str, paths: list[pathlib.Path]
+) -> list[tuple[str, int, int]]:
+    """(qualname, CCN, physical length) per C++ function definition, via lizard.
 
     lizard needs no compiler or build flags, keeping the cpp instance a pure
     text scan; its counting rules differ from the Python AST visitor above, so
     compare complexity trends within a language, not across languages. Pin the
-    lizard version — the committed snapshot embeds its counting rules.
+    lizard version — the committed snapshot embeds its counting rules. Length
+    is the physical span (``end_line - start_line + 1``), matching the Python
+    definition.
     """
     # Only cpp instances need lizard installed (short import line so 88-width
     # reflow can't strand the ignore comment).
     import lizard  # pyright: ignore
 
-    results: list[tuple[str, int]] = []
+    results: list[tuple[str, int, int]] = []
     for path in paths:
         analysis = lizard.analyze_file(str(path))
         results.extend(
-            (f"{module}.{fn.name}", int(fn.cyclomatic_complexity)) for fn in analysis.function_list
+            (
+                f"{module}.{fn.name}",
+                int(fn.cyclomatic_complexity),
+                int(fn.end_line - fn.start_line + 1),
+            )
+            for fn in analysis.function_list
         )
     return sorted(results)
 
 
-def _accumulate_complexity(stats: dict[str, Any], complexities: list[tuple[str, int]]) -> None:
-    for qualname, score in complexities:
+def _accumulate_complexity(stats: dict[str, Any], complexities: list[tuple[str, int, int]]) -> None:
+    for qualname, score, _length in complexities:
         if score > COMPLEXITY_THRESHOLD:
             stats["functions_over_10"] += 1
         if score > stats["max_complexity"] or (
@@ -296,12 +338,23 @@ def _accumulate_complexity(stats: dict[str, Any], complexities: list[tuple[str, 
             stats["max_complexity"], stats["max_function"] = score, qualname
 
 
+def _merge_module_complexity(
+    per_module: dict[str, dict[str, int]], module: str, complexities: list[tuple[str, int, int]]
+) -> None:
+    entry = per_module.setdefault(module, {"functions": 0, "max_complexity": 0})
+    entry["functions"] += len(complexities)
+    for _, score, _length in complexities:
+        if score > entry["max_complexity"]:
+            entry["max_complexity"] = score
+
+
 def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     per_component: dict[str, dict[str, Any]] = {
         comp: {"functions_over_10": 0, "max_complexity": 0, "max_function": ""}
         for comp in sorted(components)
     }
-    all_functions: list[tuple[str, int]] = []
+    per_module: dict[str, dict[str, int]] = {}
+    all_functions: list[tuple[str, int, int]] = []
 
     if LANGUAGE == "python":
         for path in sorted(SRC_ROOT.rglob("*.py")):
@@ -310,6 +363,7 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             complexities = _function_complexities(tree, module)
             all_functions.extend(complexities)
+            _merge_module_complexity(per_module, module, complexities)
             if comp is not None:
                 _accumulate_complexity(per_component[comp], complexities)
     else:
@@ -317,14 +371,34 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
             comp = component_of(module, components)
             complexities = _cpp_function_complexities(module, paths)
             all_functions.extend(complexities)
+            _merge_module_complexity(per_module, module, complexities)
             if comp is not None:
                 _accumulate_complexity(per_component[comp], complexities)
 
     top = sorted(all_functions, key=lambda item: (-item[1], item[0]))[:10]
+    scores = [score for _, score, _ in all_functions]
+    lengths = [length for _, _, length in all_functions]
+    max_length = max(lengths, default=0)
+    max_length_fn = min(
+        (name for name, _, length in all_functions if length == max_length), default=""
+    )
     return {
         "components": per_component,
-        "functions_over_10": sum(1 for _, score in all_functions if score > COMPLEXITY_THRESHOLD),
-        "top_functions": [{"complexity": score, "qualname": name} for name, score in top],
+        "function_lengths": {
+            "max": max_length,
+            "max_function": max_length_fn,
+            "median": _lower_median(lengths),
+            "over_75": sum(1 for length in lengths if length > FUNCTION_LENGTH_THRESHOLD),
+            "p90": _nearest_rank_p90(lengths),
+        },
+        "functions_over_10": sum(1 for score in scores if score > COMPLEXITY_THRESHOLD),
+        "max": max(scores, default=0),
+        "median": _lower_median(scores),
+        "p90": _nearest_rank_p90(scores),
+        "per_module": per_module,
+        "top_functions": [
+            {"complexity": score, "length": length, "qualname": name} for name, score, length in top
+        ],
         "total_functions": len(all_functions),
     }
 
@@ -402,11 +476,26 @@ def compute_metrics() -> dict[str, Any]:
     tiers: dict[str, list[str]] = arch.get("tiers", {})
 
     size = _size_metrics(components)
+    complexity = _complexity_metrics(components)
+    # Merge the two per-module views into one trendable top-level map; size's
+    # iteration defines the module set, so len(modules) == size.total_modules.
+    size_per_module = size.pop("per_module")
+    complexity_per_module = complexity.pop("per_module")
+    modules = {
+        module: {
+            "functions": complexity_per_module.get(module, {}).get("functions", 0),
+            "lines": stats["lines"],
+            "max_complexity": complexity_per_module.get(module, {}).get("max_complexity", 0),
+            "sloc": stats["sloc"],
+        }
+        for module, stats in size_per_module.items()
+    }
     return {
-        "complexity": _complexity_metrics(components),
+        "complexity": complexity,
         "domain": _domain_metrics(),
         "graph": _graph_metrics(components, tiers),
         "mcp": _mcp_metrics(),
+        "modules": modules,
         "schema": _SCHEMA_VERSION,
         "seams": _private_access.seams_metrics(),
         "size": size,
@@ -414,16 +503,25 @@ def compute_metrics() -> dict[str, Any]:
     }
 
 
+# One entry per declarable [budgets] key. Module-level so the hub (and any
+# other reader) can cross-check its own mirror of this map against the kit's.
+BUDGET_ACTUALS: dict[str, Any] = {
+    "complexity_p90": lambda m: m["complexity"]["p90"],
+    "component_cycles": lambda m: len(m["graph"]["component_cycles"]),
+    "cross_component_edges": lambda m: m["graph"]["cross_component_edges"],
+    "cross_component_module_edges": lambda m: m["graph"]["cross_component_module_edges"],
+    "cross_module_private_refs": lambda m: m["seams"]["cross_module_private_refs"],
+    "functions_over_10": lambda m: m["complexity"]["functions_over_10"],
+    "functions_over_75_lines": lambda m: m["complexity"]["function_lengths"]["over_75"],
+    "max_function_complexity": lambda m: m["complexity"]["max"],
+    "max_module_lines": lambda m: m["size"]["max_module_lines"],
+    "module_cycles": lambda m: m["graph"]["module_cycle_count"],
+    "modules_over_800_lines": lambda m: len(m["size"]["modules_over_800"]),
+    "tests_private_imports": lambda m: m["seams"]["tests_private_imports"],
+    "tier_skipping_edges": lambda m: m["graph"]["tier_skipping_edges"],
+}
+
+
 def budget_actual(metrics: dict[str, Any], key: str) -> int:
     """Measured value for a ``[budgets]`` key. Raises KeyError for unknown keys."""
-    actuals = {
-        "component_cycles": len(metrics["graph"]["component_cycles"]),
-        "cross_component_edges": metrics["graph"]["cross_component_edges"],
-        "cross_component_module_edges": metrics["graph"]["cross_component_module_edges"],
-        "cross_module_private_refs": metrics["seams"]["cross_module_private_refs"],
-        "max_module_lines": metrics["size"]["max_module_lines"],
-        "module_cycles": metrics["graph"]["module_cycle_count"],
-        "modules_over_800_lines": len(metrics["size"]["modules_over_800"]),
-        "tests_private_imports": metrics["seams"]["tests_private_imports"],
-    }
-    return actuals[key]
+    return int(BUDGET_ACTUALS[key](metrics))

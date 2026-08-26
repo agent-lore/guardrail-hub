@@ -162,6 +162,10 @@ def build_architecture_skeleton(
         "# max_module_lines       = TODO  # stop-loss, a little above today's largest module",
         "# cross_module_private_refs = TODO  # python-only seam ratchet; goal: 0",
         "# tests_private_imports     = TODO  # python-only seam ratchet; goal: 0",
+        "# functions_over_10       = TODO  # cyclomatic-complexity count ratchet",
+        "# max_function_complexity = TODO  # stop-loss, at/just above today's worst function",
+        "# functions_over_75_lines = TODO  # long-function count ratchet",
+        "# tier_skipping_edges     = TODO  # edges jumping >=2 tiers; goal: 0",
     ]
     skeleton = template.format(
         kit_version=kit_version(),

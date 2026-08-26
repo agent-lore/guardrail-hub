@@ -12,21 +12,27 @@ from typing import Any
 
 from guardrail_hub.models import BudgetLevel, BudgetStatus
 
-_ACTUALS: dict[str, Callable[[Mapping[str, Any]], int]] = {
+# Public so tests can assert it mirrors the kit's BUDGET_ACTUALS key-for-key.
+BUDGET_ACTUALS: dict[str, Callable[[Mapping[str, Any]], int]] = {
+    "complexity_p90": lambda m: m["complexity"]["p90"],
     "component_cycles": lambda m: len(m["graph"]["component_cycles"]),
     "cross_component_edges": lambda m: m["graph"]["cross_component_edges"],
     "cross_component_module_edges": lambda m: m["graph"]["cross_component_module_edges"],
     "cross_module_private_refs": lambda m: m["seams"]["cross_module_private_refs"],
+    "functions_over_10": lambda m: m["complexity"]["functions_over_10"],
+    "functions_over_75_lines": lambda m: m["complexity"]["function_lengths"]["over_75"],
+    "max_function_complexity": lambda m: m["complexity"]["max"],
     "max_module_lines": lambda m: m["size"]["max_module_lines"],
     "module_cycles": lambda m: m["graph"]["module_cycle_count"],
     "modules_over_800_lines": lambda m: len(m["size"]["modules_over_800"]),
     "tests_private_imports": lambda m: m["seams"]["tests_private_imports"],
+    "tier_skipping_edges": lambda m: m["graph"]["tier_skipping_edges"],
 }
 
 
 def budget_actual(metrics: Mapping[str, Any], key: str) -> int | None:
     """Measured value for a budget key, or None when unknown/unreadable."""
-    extractor = _ACTUALS.get(key)
+    extractor = BUDGET_ACTUALS.get(key)
     if extractor is None:
         return None
     try:

@@ -82,46 +82,66 @@
         "max_function": "guardrail_hub.web.create_app.ledger_panel"
       }
     },
+    "function_lengths": {
+      "max": 235,
+      "max_function": "guardrail_hub.web.create_app",
+      "median": 9,
+      "over_75": 1,
+      "p90": 28
+    },
     "functions_over_10": 6,
+    "max": 19,
+    "median": 3,
+    "p90": 8,
     "top_functions": [
       {
         "complexity": 19,
+        "length": 38,
         "qualname": "guardrail_hub.cli._cmd_drift"
       },
       {
         "complexity": 16,
+        "length": 67,
         "qualname": "guardrail_hub.installer.apply_kit"
       },
       {
         "complexity": 14,
+        "length": 33,
         "qualname": "guardrail_hub.installer._tiers_from_importlinter"
       },
       {
         "complexity": 12,
+        "length": 35,
         "qualname": "guardrail_hub.coupling.mine_coupling"
       },
       {
         "complexity": 12,
+        "length": 22,
         "qualname": "guardrail_hub.drift._FoldStringConcat.visit_BinOp"
       },
       {
         "complexity": 11,
+        "length": 27,
         "qualname": "guardrail_hub.archmap.load_archmap"
       },
       {
         "complexity": 10,
+        "length": 22,
         "qualname": "guardrail_hub.drift._extras"
       },
       {
         "complexity": 10,
+        "length": 60,
         "qualname": "guardrail_hub.installer.build_architecture_skeleton"
       },
       {
         "complexity": 10,
+        "length": 24,
         "qualname": "guardrail_hub.kit.load_manifest"
       },
       {
         "complexity": 9,
+        "length": 17,
         "qualname": "guardrail_hub.drift._strip_docstrings"
       }
     ],
@@ -234,6 +254,140 @@
     "tools": 0,
     "tools_without_docstrings": 0
   },
+  "modules": {
+    "guardrail_hub": {
+      "functions": 0,
+      "lines": 3,
+      "max_complexity": 0,
+      "sloc": 2
+    },
+    "guardrail_hub.__main__": {
+      "functions": 0,
+      "lines": 6,
+      "max_complexity": 0,
+      "sloc": 4
+    },
+    "guardrail_hub.archmap": {
+      "functions": 3,
+      "lines": 84,
+      "max_complexity": 11,
+      "sloc": 71
+    },
+    "guardrail_hub.budget_ledger": {
+      "functions": 4,
+      "lines": 73,
+      "max_complexity": 7,
+      "sloc": 59
+    },
+    "guardrail_hub.budgets": {
+      "functions": 3,
+      "lines": 77,
+      "max_complexity": 7,
+      "sloc": 65
+    },
+    "guardrail_hub.checkouts": {
+      "functions": 4,
+      "lines": 93,
+      "max_complexity": 7,
+      "sloc": 77
+    },
+    "guardrail_hub.cli": {
+      "functions": 6,
+      "lines": 129,
+      "max_complexity": 19,
+      "sloc": 102
+    },
+    "guardrail_hub.config": {
+      "functions": 16,
+      "lines": 276,
+      "max_complexity": 8,
+      "sloc": 217
+    },
+    "guardrail_hub.coupling": {
+      "functions": 1,
+      "lines": 60,
+      "max_complexity": 12,
+      "sloc": 50
+    },
+    "guardrail_hub.docs_render": {
+      "functions": 8,
+      "lines": 95,
+      "max_complexity": 6,
+      "sloc": 72
+    },
+    "guardrail_hub.drift": {
+      "functions": 11,
+      "lines": 215,
+      "max_complexity": 12,
+      "sloc": 183
+    },
+    "guardrail_hub.errors": {
+      "functions": 0,
+      "lines": 23,
+      "max_complexity": 0,
+      "sloc": 13
+    },
+    "guardrail_hub.gitio": {
+      "functions": 14,
+      "lines": 184,
+      "max_complexity": 9,
+      "sloc": 145
+    },
+    "guardrail_hub.history": {
+      "functions": 4,
+      "lines": 93,
+      "max_complexity": 8,
+      "sloc": 78
+    },
+    "guardrail_hub.hotspots": {
+      "functions": 2,
+      "lines": 69,
+      "max_complexity": 7,
+      "sloc": 55
+    },
+    "guardrail_hub.installer": {
+      "functions": 11,
+      "lines": 367,
+      "max_complexity": 16,
+      "sloc": 304
+    },
+    "guardrail_hub.kit": {
+      "functions": 5,
+      "lines": 78,
+      "max_complexity": 10,
+      "sloc": 63
+    },
+    "guardrail_hub.logging_setup": {
+      "functions": 1,
+      "lines": 12,
+      "max_complexity": 1,
+      "sloc": 7
+    },
+    "guardrail_hub.models": {
+      "functions": 4,
+      "lines": 180,
+      "max_complexity": 4,
+      "sloc": 137
+    },
+    "guardrail_hub.repo_scan": {
+      "functions": 7,
+      "lines": 147,
+      "max_complexity": 8,
+      "sloc": 127
+    },
+    "guardrail_hub.store": {
+      "functions": 11,
+      "lines": 174,
+      "max_complexity": 6,
+      "sloc": 150
+    },
+    "guardrail_hub.web": {
+      "functions": 18,
+      "lines": 332,
+      "max_complexity": 6,
+      "sloc": 291
+    }
+  },
   "schema": 1,
   "seams": {
     "cross_module_private_detail": [],
@@ -247,11 +401,11 @@
         "classes": 0,
         "functions": 3,
         "largest_module": "guardrail_hub.budgets",
-        "largest_module_lines": 71,
-        "lines": 71,
+        "largest_module_lines": 77,
+        "lines": 77,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 60
+        "sloc": 65
       },
       "Checkouts": {
         "classes": 0,
@@ -326,22 +480,22 @@
       "History": {
         "classes": 1,
         "functions": 14,
-        "largest_module": "guardrail_hub.archmap",
-        "largest_module_lines": 84,
-        "lines": 361,
+        "largest_module": "guardrail_hub.history",
+        "largest_module_lines": 93,
+        "lines": 379,
         "modules": 5,
         "public_symbols": 11,
-        "sloc": 295
+        "sloc": 313
       },
       "Installer": {
         "classes": 0,
         "functions": 11,
         "largest_module": "guardrail_hub.installer",
-        "largest_module_lines": 363,
-        "lines": 363,
+        "largest_module_lines": 367,
+        "lines": 367,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 300
+        "sloc": 304
       },
       "Kit": {
         "classes": 1,
@@ -397,23 +551,23 @@
         "classes": 0,
         "functions": 18,
         "largest_module": "guardrail_hub.web",
-        "largest_module_lines": 325,
-        "lines": 325,
+        "largest_module_lines": 332,
+        "lines": 332,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 286
+        "sloc": 291
       }
     },
     "max_module": "guardrail_hub.installer",
-    "max_module_lines": 363,
+    "max_module_lines": 367,
     "modules_over_800": [],
-    "total_lines": 2735,
+    "total_lines": 2770,
     "total_modules": 22,
-    "total_sloc": 2240
+    "total_sloc": 2272
   },
   "tests": {
-    "ratio": 2.01,
-    "src_lines": 2735,
-    "test_lines": 5503
+    "ratio": 2.06,
+    "src_lines": 2770,
+    "test_lines": 5706
   }
 }

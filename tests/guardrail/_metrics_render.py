@@ -2,7 +2,10 @@
 
 Both renderers consume the single dict produced by
 :func:`tests.guardrail._metrics_toolkit.compute_metrics`, so the two committed
-artifacts can never disagree with each other.
+artifacts can never disagree with each other. The per-module ``modules`` map
+stays JSON-only: a table with one row per module would swamp metrics.md, and
+the offenders are already named by ``modules_over_800`` and the component
+table — the map exists for trend mining, not for reading.
 """
 
 from __future__ import annotations
@@ -11,7 +14,12 @@ import json
 from typing import Any
 
 from tests.guardrail._common import LANGUAGE, load_architecture, with_header
-from tests.guardrail._metrics_toolkit import COMPLEXITY_THRESHOLD, GOD_MODULE_LINES, budget_actual
+from tests.guardrail._metrics_toolkit import (
+    COMPLEXITY_THRESHOLD,
+    FUNCTION_LENGTH_THRESHOLD,
+    GOD_MODULE_LINES,
+    budget_actual,
+)
 from tests.guardrail._private_access import DETAIL_CAP
 
 
@@ -103,18 +111,26 @@ def _size_section(metrics: dict[str, Any]) -> list[str]:
 
 def _complexity_section(metrics: dict[str, Any]) -> list[str]:
     c = metrics["complexity"]
+    fl = c["function_lengths"]
+    longest = f" (`{fl['max_function']}`)" if fl["max_function"] else ""
     lines = [
         "## Complexity",
         "",
         f"- Functions: **{c['total_functions']}**, cyclomatic > {COMPLEXITY_THRESHOLD}:"
         f" **{c['functions_over_10']}**",
+        f"- Cyclomatic distribution: median **{c['median']}**, p90 **{c['p90']}**,"
+        f" max **{c['max']}**",
+        f"- Function length (lines): median {fl['median']}, p90 {fl['p90']},"
+        + f" max {fl['max']}{longest}; over {FUNCTION_LENGTH_THRESHOLD}: **{fl['over_75']}**",
         "",
         "Top 10 most complex functions:",
         "",
-        "| Complexity | Function |",
-        "|---:|---|",
+        "| Complexity | Length | Function |",
+        "|---:|---:|---|",
     ]
-    lines.extend(f"| {t['complexity']} | `{t['qualname']}` |" for t in c["top_functions"])
+    lines.extend(
+        f"| {t['complexity']} | {t['length']} | `{t['qualname']}` |" for t in c["top_functions"]
+    )
     return lines
 
 
