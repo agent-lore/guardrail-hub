@@ -3,7 +3,7 @@
 # Single source of truth for:
 #   - the generated component diagram + per-component pages
 #   - which modules are scanned for the domain class diagram
-#   - the architecture metrics snapshot and its hard budgets
+#   - the architecture metrics snapshot and its accepted budgets
 #
 # The directional layering contract lives in pyproject.toml
 # ([tool.importlinter]); the tiers below document that intent (dependencies must
@@ -67,16 +67,18 @@ Entrypoints = ["Cli", "Web"]
 Core        = ["Store", "RepoScan", "History", "Budgets", "Drift", "Installer", "Kit", "DocsRender", "Gitio", "Checkouts"]
 Foundation  = ["Config", "Models", "Logging", "Errors"]
 
-# Hard architecture budgets, checked by tests/guardrail/test_metrics_budgets.py
+# Accepted architecture budgets, checked by tests/guardrail/test_metrics_budgets.py
 # against the metrics snapshot (docs/generated/metrics.md explains each one).
-# CI fails if a measured value exceeds its budget. Raising a budget is allowed
-# but must be an explicit, reviewed edit to this file; lower a budget after
-# improving the code to lock in the gain.
+# Dependency direction and the zero-cycle budgets are architectural invariants.
+# Size, complexity, and dependency counts are review thresholds: do not split
+# cohesive code solely to satisfy a number. If there is no clean seam and keeping
+# the code together is clearer, adjust the relevant threshold here and explain
+# the affected code and design tradeoff in the same PR. Changing an invariant
+# requires an explicit architecture decision. CI still enforces every accepted
+# budget; see AGENTS.md for the policy.
 #
-# Most budgets below are tight ratchets pinned at today's value (any regression
-# fails CI). max_module_lines is the exception: it is a STOP-LOSS ceiling set a
-# little above today's largest module so a big module can't quietly balloon.
-# Ratchet the *count* of oversized modules down via modules_over_800_lines.
+# Most budgets below are pinned at the measured value; max_module_lines has
+# headroom. Lower thresholds after improvements where that protects useful gains.
 [budgets]
 cross_component_edges  = 42   # measured 2026-08 (+5: managed checkouts — checkouts→gitio/config/models/errors, store→checkouts); direction: down
 component_cycles       = 0    # no component-level cycles today; keep it that way

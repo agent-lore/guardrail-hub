@@ -90,13 +90,31 @@ you add an artifact, add it to `conftest._generate_all()` too.
    `conftest._generate_all()` so fresh runs emit it before validation.
 4. `make diagrams` now emits it and CI drift-gates it automatically.
 
-## Budgets are hand-edited ratchets
+## Guardrail policy: invariants and review thresholds
 
-`[budgets]` are hard counts; `test_metrics_budgets` fails CI on breach. CI must
-**never** auto-rewrite them — they are a source-of-truth file, and raising one is
-a deliberate, reviewed line in the PR diff (the message names both remediation
-paths). `test_budget_keys_are_known` catches a typo'd key so a ratchet can't be
-silently disabled.
+Guardrails support maintainability and architectural quality. Passing the
+metrics alone is not evidence of a good change.
+
+- **Architectural invariants:** dependency restrictions and explicitly
+  prohibited cycles express design decisions. Preserve them unless the PR
+  explicitly revises the architecture and explains why.
+- **Review thresholds:** file/function length, complexity, and dependency counts
+  prompt design review, unless the project explicitly designates one as an
+  invariant. Do not split files, extract helpers, or add forwarding layers solely
+  to satisfy a number. Refactor when there is a cohesive responsibility, a clear
+  interface, or independently testable behavior.
+
+If there is no clean seam and separation would scatter related logic, increase
+coupling, or reduce comprehensibility, keep the code together. Adjust the
+relevant threshold in `docs/architecture.toml` in the same PR, explaining the
+affected code and why the design is clearer. Keep the adjustment proportionate;
+lower thresholds after improvements where doing so protects useful gains.
+
+`[budgets]` still defines the accepted configuration: `test_metrics_budgets`
+fails CI on breach until the code or configuration is deliberately changed.
+CI must **never** auto-rewrite budgets, and agents must not silently bypass
+checks or raise budgets just to make a build pass. `test_budget_keys_are_known`
+catches a typo'd key so a budget can't be silently disabled.
 
 ## Gotcha: `metrics.test_lines` is self-referential
 
