@@ -63,7 +63,12 @@ class RepoStore:
         self._resolved = {e.name: checkouts.resolve(config.checkouts, e) for e in config.repos}
         self._lock = threading.Lock()
         self._fetch_errors: dict[str, str] = {}
-        self._fetch_locks = {e.name: threading.Lock() for e in config.repos}
+        # Locks key on the CHECKOUT PATH, not the entry name: monorepo subdir
+        # entries share one clone, and two concurrent refreshes of the same
+        # clone dir would race clone-vs-clone (seen as "Directory not empty").
+        self._fetch_locks: dict[str, threading.Lock] = {}
+        for e in config.repos:
+            self._fetch_locks.setdefault(str(e.path), threading.Lock())
         self._snapshots: dict[str, tuple[_SnapshotKey, RepoSnapshot]] = {}
         self._histories: dict[str, tuple[str, tuple[MetricPoint, ...]]] = {}
         self._ledgers: dict[str, tuple[str, tuple[BudgetEvent, ...]]] = {}
@@ -198,7 +203,7 @@ class RepoStore:
         original = self._config.repo(name)
         if original is None or not self._config.checkouts.enabled:
             return
-        with self._fetch_locks[name]:
+        with self._fetch_locks[str(original.path)]:
             error = checkouts.refresh(self._config.checkouts, original)
         with self._lock:
             self._fetch_errors[name] = error

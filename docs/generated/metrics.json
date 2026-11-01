@@ -377,9 +377,9 @@
     },
     "guardrail_hub.store": {
       "functions": 12,
-      "lines": 207,
+      "lines": 212,
       "max_complexity": 6,
-      "sloc": 181
+      "sloc": 183
     },
     "guardrail_hub.web": {
       "functions": 18,
@@ -541,11 +541,11 @@
         "classes": 1,
         "functions": 12,
         "largest_module": "guardrail_hub.store",
-        "largest_module_lines": 207,
-        "lines": 207,
+        "largest_module_lines": 212,
+        "lines": 212,
         "modules": 1,
         "public_symbols": 1,
-        "sloc": 181
+        "sloc": 183
       },
       "Web": {
         "classes": 0,
@@ -561,13 +561,13 @@
     "max_module": "guardrail_hub.installer",
     "max_module_lines": 372,
     "modules_over_800": [],
-    "total_lines": 2919,
+    "total_lines": 2924,
     "total_modules": 22,
-    "total_sloc": 2403
+    "total_sloc": 2405
   },
   "tests": {
-    "ratio": 1.98,
-    "src_lines": 2919,
-    "test_lines": 5785
+    "ratio": 1.99,
+    "src_lines": 2924,
+    "test_lines": 5818
   }
 }

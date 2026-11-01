@@ -174,6 +174,39 @@ def test_unmanaged_refresh_never_fetches(fixture_entry: RepoEntry) -> None:
     assert store.snapshot(fixture_entry).status.managed is False
 
 
+def test_monorepo_entries_share_fetch_lock_and_refresh_concurrently(tmp_path: Path) -> None:
+    """Two subdir entries over one checkout must not race clone-vs-clone.
+
+    Mirrors the serve-startup fan-out: refresh(name) per entry, concurrently.
+    """
+    import threading
+
+    origin = make_monorepo(tmp_path, subdir="server")
+    work = clone_of(origin, tmp_path / "work")
+    entries = (
+        RepoEntry(name="mono-server", path=work, subdir="server"),
+        RepoEntry(name="mono-client", path=work, subdir="client"),
+    )
+    config = HubConfig(
+        repos=entries,
+        server=ServerConfig(),
+        checkouts=CheckoutsConfig(enabled=True, dir=tmp_path / "data"),
+    )
+    store = RepoStore(config)
+
+    threads = [threading.Thread(target=store.refresh, args=(e.name,)) for e in entries]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    resolved = store.entries
+    assert resolved[0].path == resolved[1].path  # one shared clone
+    assert (resolved[0].path / ".git").is_dir()
+    for entry in resolved:
+        assert store.snapshot(entry).status.fetch_error == ""
+
+
 def test_hotspots_cached_by_tip_and_refreshed(tmp_path: Path) -> None:
     repo = make_repo(tmp_path)
     entry = RepoEntry(name="fixture", path=repo, family="test")

@@ -58,12 +58,12 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
 | Models | 1 | 187 | 143 | 8 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
 | RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
-| Store | 1 | 207 | 181 | 1 | 7 | 0.88 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
+| Store | 1 | 212 | 183 | 1 | 7 | 0.88 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
 | Web | 1 | 332 | 291 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
 
 ## Size
 
-- Modules: **22**, lines: **2919**, SLOC: **2403**
+- Modules: **22**, lines: **2924**, SLOC: **2405**
 - Largest module: `guardrail_hub.installer` (372 lines)
 - Modules over 800 lines: **0**
 
@@ -99,4 +99,4 @@ Private-name reaches across module seams. Both counts can be pinned as
 ## Domain & tests
 
 - Domain models: **11** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.98** (5785 test lines / 2919 source lines)
+- Test-to-source line ratio: **1.99** (5818 test lines / 2924 source lines)
