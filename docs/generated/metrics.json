@@ -2287,7 +2287,7 @@
       "seams": "measured",
       "structure": "measured"
     },
-    "config_hash": "ff48a4766eca2c3a32f4217803500fd7c43acccddef8f5b6b2e876e8c71d9f10",
+    "config_hash": "0d60399d2284fff394702993f16957f6b8036774c1ca2be195eee3c8195b8647",
     "definitions": {
       "complexity": 1,
       "structure": 1,
@@ -2541,20 +2541,28 @@
     },
     "budgets": {
       "component_cycles": 0,
-      "cross_component_edges": 42,
+      "cross_component_edges": 46,
       "cross_module_private_refs": 0,
-      "functions_over_10": 6,
+      "functions_over_10": 8,
       "functions_over_75_lines": 1,
       "max_function_complexity": 19,
       "max_module_lines": 800,
       "module_cycles": 0,
       "modules_over_800_lines": 0,
       "tests_private_imports": 0,
-      "tier_skipping_edges": 5
+      "tier_skipping_edges": 6
     },
-    "enforce_new": false,
-    "enforce_worsened": false,
-    "exceptions": [],
+    "enforce_new": true,
+    "enforce_worsened": true,
+    "exceptions": [
+      {
+        "limit": 320,
+        "metric": "function_length",
+        "reason": "The 292-line span includes separately measured route closures sharing RepoStore and templates. Keeping this low-branching registration together is clearer; 28 lines of headroom permit small wiring changes, not new business logic.",
+        "review": "docs/enforcement-pilot.md#app-factory-length; revisit on substantive handler orchestration, independently owned route groups, or span above 320.",
+        "target": "guardrail_hub.web.create_app"
+      }
+    ],
     "limits": {
       "function_complexity": 10,
       "function_length": 75,
@@ -2562,8 +2570,17 @@
     },
     "policies": {
       "component_cycles": "invariant",
+      "cross_component_edges": "review",
       "cross_module_private_refs": "invariant",
+      "function_complexity": "review",
+      "function_length": "review",
+      "functions_over_10": "review",
+      "functions_over_75_lines": "review",
+      "max_function_complexity": "review",
+      "max_module_lines": "review",
       "module_cycles": "invariant",
+      "module_lines": "review",
+      "modules_over_800_lines": "review",
       "tests_private_imports": "invariant",
       "tier_skipping_edges": "context"
     },

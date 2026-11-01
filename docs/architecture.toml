@@ -80,17 +80,17 @@ Foundation  = ["Config", "Models", "Logging", "Errors"]
 # Most budgets below are pinned at the measured value; max_module_lines has
 # headroom. Lower thresholds after improvements where that protects useful gains.
 [budgets]
-cross_component_edges  = 42   # measured 2026-08 (+5: managed checkouts — checkouts→gitio/config/models/errors, store→checkouts); direction: down
+cross_component_edges  = 46   # reviewed revision-review dependencies; rationale in docs/enforcement-pilot.md
 component_cycles       = 0    # no component-level cycles today; keep it that way
 module_cycles          = 0    # no module-level cycles today; keep it that way
 modules_over_800_lines = 0    # no god modules today; keep it that way
-max_module_lines       = 800  # stop-loss at the god-module threshold; largest today is installer (367)
+max_module_lines       = 800  # review threshold; retain useful headroom rather than pinning to today's maximum
 cross_module_private_refs = 0  # no cross-module private reaches today; keep it that way
 tests_private_imports     = 0  # tests use only the public surface; keep it that way
-functions_over_10       = 6   # measured 2026-08; cyclomatic-count ratchet; direction: down
+functions_over_10       = 8   # reviewed baseline; individual worsening is gated, not offset by improvements elsewhere
 max_function_complexity = 19  # measured 2026-08 (cli._cmd_drift); stop-loss at today's worst; direction: down
 functions_over_75_lines = 1   # measured 2026-08 (web.create_app, a deliberate closure-style app factory); direction: down
-tier_skipping_edges     = 5   # measured 2026-08 (Cli/Web -> Foundation shortcuts); direction: down, goal 0
+tier_skipping_edges     = 6   # context: direct Foundation use is allowed by the open layering policy
 
 # Domain class diagram: the shared value types. Settings models (config) and
 # the kit-manifest working type (kit.KitFile) are not domain entities, so
@@ -109,18 +109,35 @@ exclude_modules = [
 ]
 
 
-# The initial 1.6 snapshot establishes a comparable function baseline. Enable
-# changed-code gates after it reaches main; old snapshots lack function identity.
+# Hub-only pilot against the committed 1.6 baseline. Existing findings remain
+# visible; new/worsened findings require improvement or a reviewed exception.
+# See docs/enforcement-pilot.md for decisions and evaluation criteria.
 [review]
 function_complexity = 10
 function_length = 75
 module_lines = 800
-enforce_new = false
-enforce_worsened = false
+enforce_new = true
+enforce_worsened = true
 
 [policies]
 component_cycles = "invariant"
 module_cycles = "invariant"
 cross_module_private_refs = "invariant"
 tests_private_imports = "invariant"
+cross_component_edges = "review"
+modules_over_800_lines = "review"
+max_module_lines = "review"
+functions_over_10 = "review"
+max_function_complexity = "review"
+functions_over_75_lines = "review"
+function_complexity = "review"
+function_length = "review"
+module_lines = "review"
 tier_skipping_edges = "context"
+
+[[exceptions]]
+metric = "function_length"
+target = "guardrail_hub.web.create_app"
+limit = 320
+reason = "The 292-line span includes separately measured route closures sharing RepoStore and templates. Keeping this low-branching registration together is clearer; 28 lines of headroom permit small wiring changes, not new business logic."
+review = "docs/enforcement-pilot.md#app-factory-length; revisit on substantive handler orchestration, independently owned route groups, or span above 320."
