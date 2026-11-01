@@ -23,52 +23,24 @@ port = 8600
 enabled = true
 # dir = "~/.local/share/guardrail-hub/checkouts"   # default shown
 
+# Replace these fictional entries with your local repositories.
 [[repos]]
-name = "lithos"
-path = "~/tmp/tmp-diagram-uplift/lithos-dia"
-family = "lithos"
-
-[[repos]]
-name = "lithos-lens"
-path = "~/projects/lithos/code/lithos-lens"
-family = "lithos"
-
-[[repos]]
-name = "lithos-loom"
-path = "~/projects/lithos/code/lithos-loom"
-family = "lithos"
-
-[[repos]]
-name = "influx"
-path = "~/projects/lithos/code/influx"
-family = "lithos"
-
-[[repos]]
-name = "kc-agent"
-path = "~/tmp/tmp-diagram-uplift/kc-agent"
-family = "kindred"
-
-[[repos]]
-name = "kc-sim"
-path = "~/tmp/tmp-diagram-uplift/kc-sim"
-family = "kindred"
-
-[[repos]]
-name = "guardrail-hub"
-path = "~/tmp/tmp-diagram-uplift/guardrail-hub"
-family = "hub"
+name = "example-library"
+path = "~/src/example-library"
+family = "example"
+default_branch = "main"
 
 # Monorepo components register as separate entries over one checkout: `subdir`
 # is where the kit instance (tests/guardrail/, docs/) lives; git operations
-# stay on the checkout root.
+# stay on the checkout root. Remove these entries if you do not use a monorepo.
 [[repos]]
-name = "robot-companion-server"
-path = "~/projects/nao/robot-companion"
-family = "nao"
+name = "example-app-server"
+path = "~/src/example-app"
+family = "example"
 subdir = "server"
 
 [[repos]]
-name = "robot-companion-client"
-path = "~/projects/nao/robot-companion"
-family = "nao"
+name = "example-app-client"
+path = "~/src/example-app"
+family = "example"
 subdir = "client"

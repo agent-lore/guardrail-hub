@@ -45,6 +45,11 @@ uv run guardrail-hub apply ~/src/new-project   # port the kit to a new repo
 uv run guardrail-hub apply ~/src/robot/client --language cpp --root-package agent
 ```
 
+For startup at boot and operation after logout, see
+[Run as a systemd user service](docs/user-service.md). The guide includes example
+units, a dedicated installation, optional GitHub authentication, and explicit
+upgrade and rollback steps.
+
 ## Development
 
 ```bash
