@@ -106,6 +106,27 @@ never patch the applied files.
    normalizes `+`-joined plain AND f-string pieces back to the canonical
    literal, so explicit `+` never shows as drift.
 
+## Guardrail policy
+
+Guardrails support maintainability and architectural quality. Passing the
+metrics alone is not evidence of a good change.
+
+- **Architectural invariants:** dependency restrictions and prohibited cycles
+  express design decisions. Preserve them unless the PR explicitly revises the
+  architecture and explains why.
+- **Review thresholds:** file/function length, complexity, and dependency counts
+  prompt design review. Do not split files, extract helpers, or add forwarding
+  layers solely to satisfy a number. Refactor when there is a cohesive
+  responsibility, a clear interface, or independently testable behavior.
+
+If there is no clean seam and separation would scatter related logic, increase
+coupling, or reduce comprehensibility, keep the code together. Adjust the
+relevant threshold in `docs/architecture.toml` in the same PR, explaining the
+affected code and why the design is clearer. Keep the adjustment proportionate;
+lower thresholds after improvements where doing so protects useful gains.
+CI still enforces the accepted configuration; never silently bypass a check or
+automatically raise budgets to make a build pass.
+
 ## Architecture guardrails & generated docs
 
 `docs/generated/` holds generated views of this repo's code — produced by
@@ -116,5 +137,5 @@ never patch the applied files.
 - The CI job `Diagram drift` fails when the committed files disagree with the
   code. Fix: `make diagrams`, commit.
 - `docs/architecture.toml` is the source of truth for components, tiers,
-  domain scanning, and the hard metric budgets.
+  domain scanning, and the accepted metric budgets.
 - `tests/guardrail/AGENTS.md` has the generator contracts.

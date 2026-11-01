@@ -5,9 +5,15 @@
 
 ## Budgets
 
-Hard limits from `docs/architecture.toml [budgets]`, enforced in CI by
-`tests/guardrail/test_metrics_budgets.py`. Headroom = budget - actual;
-lower a budget after improving the code to lock in the gain.
+Accepted budgets from `docs/architecture.toml [budgets]`, enforced in CI by
+`tests/guardrail/test_metrics_budgets.py`. Headroom = budget - actual.
+
+Architectural invariants (dependency restrictions and prohibited cycles)
+require an explicit architecture decision to change. Size and complexity
+thresholds prompt design review: do not split cohesive code solely to
+satisfy a number. If there is no clean seam and keeping the code together
+is clearer, adjust the relevant threshold and explain the design tradeoff
+in the same PR. Lower thresholds when that protects useful improvements.
 
 | Metric | Actual | Budget | Headroom |
 |---|---:|---:|---:|
@@ -17,7 +23,7 @@ lower a budget after improving the code to lock in the gain.
 | `functions_over_10` | 6 | 6 | 0 |
 | `functions_over_75_lines` | 1 | 1 | 0 |
 | `max_function_complexity` | 19 | 19 | 0 |
-| `max_module_lines` | 367 | 800 | 433 |
+| `max_module_lines` | 372 | 800 | 428 |
 | `module_cycles` | 0 | 0 | 0 |
 | `modules_over_800_lines` | 0 | 0 | 0 |
 | `tests_private_imports` | 0 | 0 | 0 |
@@ -47,7 +53,7 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 | Errors | 1 | 23 | 13 | 9 | 0 | 0.00 | - | 0 |
 | Gitio | 1 | 201 | 160 | 5 | 1 | 0.17 | 8 (`guardrail_hub.gitio.first_parent_numstat`) | 0 |
 | History | 5 | 466 | 387 | 2 | 3 | 0.60 | 15 (`guardrail_hub.coupling.mine_coupling`) | 2 |
-| Installer | 1 | 367 | 304 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
+| Installer | 1 | 372 | 309 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
 | Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
 | Models | 1 | 187 | 143 | 8 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
@@ -57,8 +63,8 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 ## Size
 
-- Modules: **22**, lines: **2914**, SLOC: **2398**
-- Largest module: `guardrail_hub.installer` (367 lines)
+- Modules: **22**, lines: **2919**, SLOC: **2403**
+- Largest module: `guardrail_hub.installer` (372 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
@@ -93,4 +99,4 @@ Private-name reaches across module seams. Both counts can be pinned as
 ## Domain & tests
 
 - Domain models: **11** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.98** (5775 test lines / 2914 source lines)
+- Test-to-source line ratio: **1.98** (5785 test lines / 2919 source lines)

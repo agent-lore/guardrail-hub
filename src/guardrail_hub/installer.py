@@ -248,11 +248,13 @@ _CHECKLIST = """\
    [domain] include/exclude until the completeness test passes.
 5. Run `make diagrams` (a single run regenerates everything, even from an
    empty docs/generated/ — conftest.py writes all artifacts up front).
-6. Read the measured values from docs/generated/metrics.md and pin [budgets]
-   (uncomment, fill numbers; max_module_lines a little above today's largest).
+6. Read docs/generated/metrics.md and choose [budgets] using the policy in
+   tests/guardrail/AGENTS.md: distinguish architectural invariants from review
+   thresholds; allow justified headroom instead of splitting cohesive code.
 7. Run `make diagrams` again after the budget edit and commit docs/generated/.
 8. Add the Makefile targets and the CI 'Diagram drift' job (snippets above);
-   update .PHONY.
+   update .PHONY. Add the guardrail policy to the repo-root agent instructions
+   so agents working outside tests/guardrail also follow it.
 9. `make check` green, commit, PR.
 10. Register the repo in your guardrail-hub config
     (~/.config/guardrail-hub/config.toml) so the dashboard picks it up.
@@ -275,12 +277,15 @@ _CHECKLIST_CPP = """\
    one-liners, and map generated include prefixes via [cpp.virtual_includes].
 5. Run `pytest tests/guardrail -q` (a single run regenerates everything, even
    from an empty docs/generated/ — conftest.py writes all artifacts up front).
-6. Read the measured values from docs/generated/metrics.md and pin [budgets]
-   (uncomment, fill numbers; max_module_lines a little above today's largest).
+6. Read docs/generated/metrics.md and choose [budgets] using the policy in
+   tests/guardrail/AGENTS.md: distinguish architectural invariants from review
+   thresholds; allow justified headroom instead of splitting cohesive code.
 7. Run the tests again after the budget edit and commit docs/generated/.
 8. Wire a `diagrams` target for this instance into the repo Makefile and add
    the drift gate (`git status --porcelain <root>/docs/generated`) to CI —
-   the include scan is pure text, no compiler or build dir needed.
+   the include scan is pure text, no compiler or build dir needed. Add the
+   guardrail policy to the repo-root agent instructions so agents working
+   outside tests/guardrail also follow it.
 9. Checks green, commit, PR.
 10. Register the instance in your guardrail-hub config — with `subdir = "..."`
     if this is a monorepo component — so the dashboard picks it up.
