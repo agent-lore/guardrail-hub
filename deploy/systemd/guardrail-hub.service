@@ -1,0 +1,22 @@
+[Unit]
+Description=Guardrail Hub code quality dashboard
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=exec
+WorkingDirectory=%h/.local/share/guardrail-hub
+ExecStart=%h/.local/share/guardrail-hub/current/.venv/bin/guardrail-hub serve --config %h/.config/guardrail-hub/config.toml --host 127.0.0.1 --port 8600
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment=PYTHONUNBUFFERED=1
+Environment=GIT_TERMINAL_PROMPT=0
+Environment="GIT_SSH_COMMAND=/usr/bin/ssh -o BatchMode=yes -o ConnectTimeout=10"
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=guardrail-hub
+
+[Install]
+WantedBy=default.target
