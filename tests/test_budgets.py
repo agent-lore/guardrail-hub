@@ -41,7 +41,7 @@ def test_levels() -> None:
 
     assert statuses["cross_component_edges"].level == "ok"  # 5 < 6
     assert statuses["cross_component_edges"].headroom == 1
-    assert statuses["component_cycles"].level == "tight"  # 0 == 0
+    assert statuses["component_cycles"].level == "ok"  # satisfied zero tolerance
     assert statuses["max_module_lines"].level == "tight"  # 200 == 200
     assert statuses["future_metric"].level == "unknown"
     assert statuses["future_metric"].actual is None

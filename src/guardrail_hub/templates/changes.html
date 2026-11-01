@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ repo_name }} — Revision review{% endblock %}
+{% block content %}
+<section class="hero"><h1>{{ repo_name }}: revision review</h1>
+  <a href="/repos/{{ repo_name }}">Back to repository</a>
+</section>
+<section class="panel">
+<form method="get">
+  <label>Base <input name="base" list="commits" value="{{ comparison.base }}" required></label>
+  <label>Head <input name="head" list="commits" value="{{ comparison.head }}" required></label>
+  <datalist id="commits">{% for point in points %}<option value="{{ point.sha }}">{{ point.timestamp or point.date }} · {{ point.status }}</option>{% endfor %}</datalist>
+  <button type="submit">Compare</button>
+</form>
+</section>
+{% if comparison.error %}
+<div class="banner banner-warning">Comparison unavailable: {{ comparison.error }}</div>
+{% else %}
+<section class="panel">
+<h2>Measurement boundaries</h2>
+<details><summary>Measurement definitions and scope at both revisions</summary><h3>Base</h3><pre>{{ comparison.measurements.before | tojson(indent=2) }}</pre><h3>Head</h3><pre>{{ comparison.measurements.after | tojson(indent=2) }}</pre></details>
+{% for warning in comparison.warnings %}<p class="banner banner-warning">{{ warning }}</p>{% else %}<p>Measurement definitions and scope agree.</p>{% endfor %}
+</section>
+<section class="panel">
+<h2>Individual regressions and improvements</h2>
+<table class="data-table"><thead><tr><th>Status</th><th>Target</th><th>Metric</th><th>Before → after</th><th>Policy / exception</th></tr></thead>
+<tbody>{% for row in comparison.violations %}<tr><td>{{ row.status }}</td><td>{% if row.path %}<a href="{{ url_for('revision_file', name=repo_name, revision=comparison.head if row.after is not none else comparison.base, file_path=row.path) }}"><code>{{ row.target }}</code></a>{% else %}<code>{{ row.target }}</code>{% endif %}</td><td>{{ row.metric }}</td>
+<td>{{ row.before if row.before is not none else "—" }} → {{ row.after if row.after is not none else "—" }}</td>
+<td>{{ row.policy }}{% if row.reason %}; {{ "accepted" if row.accepted else "exceeded" }} through {{ row.exception_limit }}: {{ row.reason }} ({{ row.review }}){% endif %}</td></tr>{% endfor %}</tbody></table>
+{% if comparison.blocked %}<p class="banner banner-warning">Configured policies require review before this change can pass.</p>{% endif %}
+</section>
+<section class="panel"><h2>Dependency changes</h2>
+<p>Green solid edges were added; red dashed edges were removed; amber edges have changed importing modules. The table includes module imports behind each component dependency.</p>
+{% if comparison.diagram %}<pre class="mermaid">{{ comparison.diagram }}</pre>{% else %}<p>Dependency comparison unavailable: one revision lacks detailed edge data.</p>{% endif %}
+<table class="data-table"><thead><tr><th>Kind</th><th>Change</th><th>Identity / evidence</th><th>Before → after</th></tr></thead>
+<tbody>{% for row in comparison.structure %}<tr><td>{{ row.kind }}</td><td>{{ row.status }}</td><td><code>{{ row.item }}</code></td><td>{{ row.get("before", "") }} → {{ row.get("after", "") }}</td></tr>{% endfor %}</tbody></table>
+</section>
+<section class="panel"><h2>Policy and budget decisions</h2>
+{% for row in comparison.configuration %}<p><strong>{{ row.key }}</strong>: <code>{{ row.before }}</code> → <code>{{ row.after }}</code></p>{% else %}<p>No policy changes.</p>{% endfor %}
+{% for row in comparison.evidence_changes %}<p>Outcome {{ row.status }}: {{ row.item }}</p>{% endfor %}
+{% for suggestion in comparison.suggestions %}<p>{{ suggestion }}</p>{% endfor %}
+</section>
+<section class="panel"><h2>Quality evidence at head</h2>{% set quality = comparison %}{% include "partials/quality.html" %}</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if not comparison.error %}
+<script src="{{ url_for('static', path='vendor/mermaid.min.js') }}"></script>
+<script>mermaid.initialize({ startOnLoad: true, securityLevel: "strict", theme: "neutral" });</script>
+{% endif %}{% endblock %}

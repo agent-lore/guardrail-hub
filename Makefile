@@ -15,6 +15,7 @@ typecheck:
 
 test:
 	uv run pytest tests/ -q
+	node --test tests/test_charts.cjs
 
 # Serve the dashboard against the registry in your XDG config
 # ($XDG_CONFIG_HOME/guardrail-hub/config.toml, or ./config.toml, or

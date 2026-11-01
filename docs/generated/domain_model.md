@@ -20,6 +20,7 @@ classDiagram
     +actual int | None
     +headroom int | None
     +level BudgetLevel
+    +policy str
   }
   class ComponentRow {
     +name str
@@ -59,6 +60,9 @@ classDiagram
     +sha str
     +date datetime.date
     +metrics Mapping[str, Any]
+    +timestamp str
+    +status str
+    +error str
   }
   class ModuleHotspot {
     +module str
@@ -68,6 +72,7 @@ classDiagram
     +sloc int
     +max_complexity int
     +score float
+    +method str
   }
   class RepoEntry {
     +name str
@@ -80,6 +85,9 @@ classDiagram
     +schema int | None
     +metrics Mapping[str, Any] | None
     +docs tuple[str, ...]
+    +measurement_status str
+    +measurement_note str
+    +architecture Mapping[str, Any]
   }
   class RepoStatus {
     +present bool

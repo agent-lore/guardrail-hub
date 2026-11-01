@@ -22,6 +22,7 @@ from guardrail_hub import docs_render
 from guardrail_hub.budget_ledger import raise_counts
 from guardrail_hub.config import HubConfig, load_config
 from guardrail_hub.drift import compare_repo
+from guardrail_hub.errors import RepoAccessError
 from guardrail_hub.history import extract, series
 from guardrail_hub.kit import kit_version
 from guardrail_hub.logging_setup import configure_logging
@@ -50,7 +51,8 @@ TREND_KEYS = [
     "complexity.max",
     "seams.cross_module_private_refs",
     "seams.tests_private_imports",
-    "tests.ratio",
+    "quality.branch_coverage.value",
+    "quality.mutation.value",
 ]
 
 # Headline metrics for the overview cards and the compare table — a curated
@@ -68,14 +70,19 @@ COMPARE_ROWS = [
     ("complexity.p90", "Complexity p90"),
     ("seams.cross_module_private_refs", "Private-access refs"),
     ("domain.models", "Domain models"),
-    ("tests.ratio", "Test/src ratio"),
+    ("quality.branch_coverage.value", "Branch coverage (%; check scope)"),
+    ("quality.mutation.value", "Mutation score (%; check scope)"),
     ("mcp.tools", "MCP tools"),
 ]
 
 
 def _worst_level(snapshot: RepoSnapshot) -> str:
     order = ("breach", "unknown", "tight", "ok")
-    levels = {b.level for b in snapshot.budgets}
+    levels = {b.level for b in snapshot.budgets if b.policy == "invariant"}
+    if "breach" not in levels and any(
+        b.level == "breach" and b.policy == "review" for b in snapshot.budgets
+    ):
+        return "review"
     return next((level for level in order if level in levels), "unknown")
 
 
@@ -156,6 +163,7 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
         ledger = await asyncio.to_thread(store.ledger, entry)
         coupling = await asyncio.to_thread(store.coupling, entry)
         hotspots = await asyncio.to_thread(store.hotspots, entry)
+        quality = await asyncio.to_thread(store.quality, entry)
         return templates.TemplateResponse(
             request,
             "repo.html",
@@ -167,6 +175,8 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
                 "trend_keys": TREND_KEYS,
                 "extract": extract,
                 "hotspots": hotspots[:10],
+                "quality": quality,
+                "history_points": points,
                 "coupling": coupling,
                 "ledger": list(reversed(ledger))[:10],
             },
@@ -255,9 +265,62 @@ def create_app(config: HubConfig, store_factory: StoreFactory | None = None) -> 
             data = series(points, [key])
             payload[entry.name] = {
                 "dates": data["dates"],
+                "timestamps": data["timestamps"],
+                "shas": data["shas"],
+                "statuses": data["value_statuses"][key],
                 "values": data["series"][key],
             }
         return JSONResponse({"key": key, "repos": payload})
+
+    @app.get("/repos/{name}/revision/{revision}/file/{file_path:path}", response_class=HTMLResponse)
+    async def revision_file(
+        request: Request, name: str, revision: str, file_path: str
+    ) -> HTMLResponse:
+        entry = _entry_or_404(name)
+        try:
+            text = await asyncio.to_thread(store.revision_file, entry, revision, file_path)
+        except RepoAccessError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return templates.TemplateResponse(
+            request,
+            "doc.html",
+            {
+                "active_view": "overview",
+                "repo_name": name,
+                "doc_path": f"{revision[:12]}:{file_path}",
+                "body": docs_render.render_plain(text),
+                "needs_mermaid": False,
+            },
+        )
+
+    async def _comparison(name: str, base: str, head: str) -> tuple[dict, tuple]:
+        entry = _entry_or_404(name)
+        points = await asyncio.to_thread(store.history, entry)
+        base = base or (points[-2].sha if len(points) > 1 else entry.default_branch)
+        head = head or entry.default_branch
+        result = await asyncio.to_thread(store.comparison, entry, base, head)
+        return result, points
+
+    @app.get("/repos/{name}/changes", response_class=HTMLResponse)
+    async def revision_changes(
+        request: Request, name: str, base: str = "", head: str = ""
+    ) -> HTMLResponse:
+        result, points = await _comparison(name, base, head)
+        return templates.TemplateResponse(
+            request,
+            "changes.html",
+            {
+                "active_view": "overview",
+                "repo_name": name,
+                "comparison": result,
+                "points": points,
+            },
+        )
+
+    @app.get("/repos/{name}/changes.json")
+    async def api_revision_changes(name: str, base: str = "", head: str = "") -> JSONResponse:
+        result, _ = await _comparison(name, base, head)
+        return JSONResponse(result)
 
     @app.get("/ledger", response_class=HTMLResponse)
     async def ledger_panel(request: Request) -> HTMLResponse:

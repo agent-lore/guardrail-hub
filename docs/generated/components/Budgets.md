@@ -22,6 +22,6 @@
 ## Dependencies
 
 - Depends on: [Models](Models.md)
-- Used by: [RepoScan](RepoScan.md)
+- Used by: [History](History.md), [RepoScan](RepoScan.md)
 
 [← all generated docs](../README.md)

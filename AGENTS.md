@@ -39,6 +39,7 @@ hatchling, ruff (line 100, E/F/I/UP/B/SIM/RUF, E501 off, double quotes),
 pyright standard, pytest (`pythonpath = ["."]`, strict config/markers),
 import-linter (Foundation → Core → Entrypoints), Makefile targets
 `install/fmt/lint/typecheck/test/check/run/diagrams/metrics-history/metrics-diff`.
+The chart data tests use Node.js 22 (`make test`).
 Python 3.12 only (pinned `<3.13` — the drift engine compares `ast.dump` output,
 which must come from one interpreter generation).
 
@@ -124,8 +125,11 @@ coupling, or reduce comprehensibility, keep the code together. Adjust the
 relevant threshold in `docs/architecture.toml` in the same PR, explaining the
 affected code and why the design is clearer. Keep the adjustment proportionate;
 lower thresholds after improvements where doing so protects useful gains.
-CI still enforces the accepted configuration; never silently bypass a check or
-automatically raise budgets to make a build pass.
+`[policies]` makes this distinction executable: only invariants block generation.
+The PR comparison can enforce new/worsened review findings when enabled in
+`[review]`; bounded `[[exceptions]]` record a reason and review reference.
+Never silently bypass checks or automatically raise budgets. See
+`docs/quality-guide.md` for configuration, comparison, and evidence contracts.
 
 ## Architecture guardrails & generated docs
 

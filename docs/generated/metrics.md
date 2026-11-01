@@ -3,8 +3,68 @@
 
 # Architecture metrics
 
+## Measurement scope
+
+```json
+{
+  "analyzer_version": "1.6.0",
+  "capabilities": {
+    "complexity": "measured",
+    "domain": "measured",
+    "mcp": "unsupported",
+    "seams": "measured",
+    "structure": "measured"
+  },
+  "config_hash": "ff48a4766eca2c3a32f4217803500fd7c43acccddef8f5b6b2e876e8c71d9f10",
+  "definitions": {
+    "complexity": 1,
+    "structure": 1,
+    "test_volume": 2
+  },
+  "language": "python",
+  "scope": {
+    "domain": {
+      "exclude_modules": [
+        "guardrail_hub.config",
+        "guardrail_hub.errors",
+        "guardrail_hub.kit",
+        "guardrail_hub.archmap",
+        "guardrail_hub.review"
+      ],
+      "include_modules": [
+        "guardrail_hub.models"
+      ]
+    },
+    "excluded": [
+      "third-party code",
+      "files outside the source root",
+      "templates and browser code",
+      "kit tooling"
+    ],
+    "source_root": "src/guardrail_hub",
+    "source_suffixes": [
+      ".py"
+    ],
+    "test_exclusions": [
+      "tests/guardrail",
+      "tests/test_metrics_diff.py",
+      "tests/test_metrics_history.py",
+      "tests/test_quality.py"
+    ]
+  },
+  "source_hash": "7c5d9a3ab776fbad17fe6da9712a12c4bfdeb329160208a46ec37d524e820089",
+  "tools": {
+    "grimp": "3.15",
+    "networkx": "3.6.1"
+  }
+}
+```
+
+Test/source ratio is a volume statistic, not test effectiveness; kit tooling is excluded.
+
 ## Budgets
 
+Only invariant budgets block generation; review/context thresholds are reported.
 Accepted budgets from `docs/architecture.toml [budgets]`, enforced in CI by
 `tests/guardrail/test_metrics_budgets.py`. Headroom = budget - actual.
 
@@ -15,26 +75,64 @@ satisfy a number. If there is no clean seam and keeping the code together
 is clearer, adjust the relevant threshold and explain the design tradeoff
 in the same PR. Lower thresholds when that protects useful improvements.
 
-| Metric | Actual | Budget | Headroom |
-|---|---:|---:|---:|
-| `component_cycles` | 0 | 0 | 0 |
-| `cross_component_edges` | 42 | 42 | 0 |
-| `cross_module_private_refs` | 0 | 0 | 0 |
-| `functions_over_10` | 6 | 6 | 0 |
-| `functions_over_75_lines` | 1 | 1 | 0 |
-| `max_function_complexity` | 19 | 19 | 0 |
-| `max_module_lines` | 372 | 800 | 428 |
-| `module_cycles` | 0 | 0 | 0 |
-| `modules_over_800_lines` | 0 | 0 | 0 |
-| `tests_private_imports` | 0 | 0 | 0 |
-| `tier_skipping_edges` | 5 | 5 | 0 |
+| Metric | Actual | Budget | Headroom | Policy |
+|---|---:|---:|---:|---|
+| `component_cycles` | 0 | 0 | 0 | invariant |
+| `cross_component_edges` | 46 | 42 | -4 | review |
+| `cross_module_private_refs` | 0 | 0 | 0 | invariant |
+| `functions_over_10` | 8 | 6 | -2 | review |
+| `functions_over_75_lines` | 1 | 1 | 0 | review |
+| `max_function_complexity` | 19 | 19 | 0 | review |
+| `max_module_lines` | 395 | 800 | 405 | review |
+| `module_cycles` | 0 | 0 | 0 | invariant |
+| `modules_over_800_lines` | 0 | 0 | 0 | review |
+| `tests_private_imports` | 0 | 0 | 0 | invariant |
+| `tier_skipping_edges` | 6 | 5 | -1 | context |
+
+### Quality review
+
+
+| Status | Metric | Target | Before | After | Policy | Exception |
+|---|---|---|---:|---:|---|---|
+| unchanged | function_complexity | guardrail_hub.archmap.load_archmap | 11 | 11 | review | — |
+| unchanged | function_complexity | guardrail_hub.cli._cmd_drift | 19 | 19 | review | — |
+| unchanged | function_complexity | guardrail_hub.coupling.mine_coupling | 15 | 15 | review | — |
+| unchanged | function_complexity | guardrail_hub.drift._FoldStringConcat.visit_BinOp | 12 | 12 | review | — |
+| unchanged | function_complexity | guardrail_hub.history.series | 16 | 16 | review | — |
+| unchanged | function_complexity | guardrail_hub.installer._tiers_from_importlinter | 14 | 14 | review | — |
+| unchanged | function_complexity | guardrail_hub.installer.apply_kit | 16 | 16 | review | — |
+| unchanged | function_complexity | guardrail_hub.repo_scan.measurement_status | 11 | 11 | review | — |
+| unchanged | function_length | guardrail_hub.web.create_app | 292 | 292 | review | — |
+- review budget cross_component_edges: 46 exceeds 42.
+- review budget functions_over_10: 8 exceeds 6.
+- context budget tier_skipping_edges: 6 exceeds 5.
+- branch_coverage: missing; value —; scope not recorded; evidence not recorded
+- mutation: missing; value —; scope not recorded; evidence not recorded
+- Review lowering budget max_module_lines: actual 395, accepted ceiling 800.
+
+
+## Quality evidence
+
+Optional measurements are source-bound; missing or stale evidence is not a score.
+
+```json
+{
+  "branch_coverage": {
+    "status": "missing"
+  },
+  "mutation": {
+    "status": "missing"
+  },
+  "outcomes": []
+}
+```
 
 ## Import graph
 
-- Cross-component edges: **42** (54 module-level)
+- Cross-component edges: **46** (62 module-level)
 - Component cycles: none
 - Module cycles: none
-- Tier-skipping edges (Entrypoints → Foundation): 5 (Cli -> Config, Cli -> Errors, Web -> Config, Web -> Logging, Web -> Models)
+- Tier-skipping edges (Entrypoints → Foundation): 6 (Cli -> Config, Cli -> Errors, Web -> Config, Web -> Errors, Web -> Logging, Web -> Models)
 - Longest component dependency chain: 5
 
 ## Components
@@ -44,49 +142,49 @@ Instability I = fan-out / (fan-in + fan-out): 0 = stable (many dependents),
 
 | Component | Modules | Lines | SLOC | Fan-in | Fan-out | Instability | Max complexity | Functions > 10 |
 |---|---:|---:|---:|---:|---:|---:|---|---:|
-| Budgets | 1 | 77 | 65 | 1 | 1 | 0.50 | 7 (`guardrail_hub.budgets.budget_statuses`) | 0 |
+| Budgets | 1 | 85 | 73 | 2 | 1 | 0.33 | 8 (`guardrail_hub.budgets.budget_statuses`) | 0 |
 | Checkouts | 1 | 93 | 77 | 1 | 4 | 0.80 | 7 (`guardrail_hub.checkouts.refresh`) | 0 |
 | Cli | 2 | 135 | 106 | 0 | 6 | 1.00 | 19 (`guardrail_hub.cli._cmd_drift`) | 1 |
 | Config | 1 | 276 | 217 | 4 | 2 | 0.33 | 8 (`guardrail_hub.config._apply_env_overrides`) | 0 |
-| DocsRender | 1 | 95 | 72 | 1 | 0 | 0.00 | 6 (`guardrail_hub.docs_render._make_parser._rewrite_links`) | 0 |
+| DocsRender | 1 | 95 | 72 | 2 | 0 | 0.00 | 6 (`guardrail_hub.docs_render._make_parser._rewrite_links`) | 0 |
 | Drift | 1 | 215 | 183 | 2 | 2 | 0.50 | 12 (`guardrail_hub.drift._FoldStringConcat.visit_BinOp`) | 1 |
-| Errors | 1 | 23 | 13 | 9 | 0 | 0.00 | - | 0 |
-| Gitio | 1 | 201 | 160 | 5 | 1 | 0.17 | 8 (`guardrail_hub.gitio.first_parent_numstat`) | 0 |
-| History | 5 | 466 | 387 | 2 | 3 | 0.60 | 15 (`guardrail_hub.coupling.mine_coupling`) | 2 |
+| Errors | 1 | 23 | 13 | 10 | 0 | 0.00 | - | 0 |
+| Gitio | 1 | 222 | 173 | 5 | 1 | 0.17 | 8 (`guardrail_hub.gitio.first_parent_numstat`) | 0 |
+| History | 6 | 628 | 530 | 2 | 5 | 0.71 | 16 (`guardrail_hub.history.series`) | 3 |
 | Installer | 1 | 372 | 309 | 1 | 3 | 0.75 | 16 (`guardrail_hub.installer.apply_kit`) | 2 |
-| Kit | 1 | 78 | 63 | 4 | 1 | 0.20 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
+| Kit | 1 | 78 | 63 | 5 | 1 | 0.17 | 10 (`guardrail_hub.kit.load_manifest`) | 0 |
 | Logging | 1 | 12 | 7 | 1 | 0 | 0.00 | 1 (`guardrail_hub.logging_setup.configure_logging`) | 0 |
-| Models | 1 | 187 | 143 | 8 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
-| RepoScan | 1 | 147 | 127 | 1 | 4 | 0.80 | 8 (`guardrail_hub.repo_scan.scan`) | 0 |
-| Store | 1 | 212 | 183 | 1 | 7 | 0.88 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
-| Web | 1 | 332 | 291 | 1 | 8 | 0.89 | 6 (`guardrail_hub.web.create_app.ledger_panel`) | 0 |
+| Models | 1 | 195 | 151 | 8 | 0 | 0.00 | 4 (`guardrail_hub.models.BudgetEvent.kind`) | 0 |
+| RepoScan | 1 | 193 | 171 | 1 | 4 | 0.80 | 11 (`guardrail_hub.repo_scan.measurement_status`) | 1 |
+| Store | 1 | 254 | 222 | 1 | 8 | 0.89 | 6 (`guardrail_hub.store.RepoStore.coupling`) | 0 |
+| Web | 1 | 395 | 350 | 1 | 9 | 0.90 | 9 (`guardrail_hub.web._worst_level`) | 0 |
 
 ## Size
 
-- Modules: **22**, lines: **2924**, SLOC: **2405**
-- Largest module: `guardrail_hub.installer` (372 lines)
+- Modules: **23**, lines: **3274**, SLOC: **2719**
+- Largest module: `guardrail_hub.web` (395 lines)
 - Modules over 800 lines: **0**
 
 ## Complexity
 
-- Functions: **139**, cyclomatic > 10: **6**
-- Cyclomatic distribution: median **3**, p90 **7**, max **19**
-- Function length (lines): median 9, p90 28, max 236 (`guardrail_hub.web.create_app`); over 75: **1**
+- Functions: **158**, cyclomatic > 10: **8**
+- Cyclomatic distribution: median **3**, p90 **9**, max **19**
+- Function length (lines): median 9, p90 28, max 292 (`guardrail_hub.web.create_app`); over 75: **1**
 
 Top 10 most complex functions:
 
 | Complexity | Length | Function |
 |---:|---:|---|
 | 19 | 38 | `guardrail_hub.cli._cmd_drift` |
+| 16 | 25 | `guardrail_hub.history.series` |
 | 16 | 67 | `guardrail_hub.installer.apply_kit` |
 | 15 | 52 | `guardrail_hub.coupling.mine_coupling` |
 | 14 | 33 | `guardrail_hub.installer._tiers_from_importlinter` |
 | 12 | 22 | `guardrail_hub.drift._FoldStringConcat.visit_BinOp` |
 | 11 | 27 | `guardrail_hub.archmap.load_archmap` |
+| 11 | 26 | `guardrail_hub.repo_scan.measurement_status` |
 | 10 | 22 | `guardrail_hub.drift._extras` |
 | 10 | 60 | `guardrail_hub.installer.build_architecture_skeleton` |
-| 10 | 24 | `guardrail_hub.kit.load_manifest` |
-| 9 | 17 | `guardrail_hub.drift._strip_docstrings` |
 
 ## Seams
 
@@ -99,4 +197,4 @@ Private-name reaches across module seams. Both counts can be pinned as
 ## Domain & tests
 
 - Domain models: **11** (5 associations, 0 without docstrings)
-- Test-to-source line ratio: **1.99** (5818 test lines / 2924 source lines)
+- Test-to-source line ratio: **1.01** (3323 test lines / 3274 source lines)

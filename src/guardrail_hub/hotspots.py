@@ -107,6 +107,9 @@ def _build_row(
         sloc=sloc,
         max_complexity=max_cx,
         score=score,
+        method="churn density x module complexity"
+        if module_stats is not None
+        else "legacy raw churn x component complexity",
     )
 
 

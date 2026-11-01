@@ -11,12 +11,13 @@ Worktree scanner: one registered checkout -> RepoSnapshot with badges, never a c
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.repo_scan` | S | 0 | 2 |
+| `guardrail_hub.repo_scan` | S | 0 | 3 |
 
 ## Public API
 
 ### `guardrail_hub.repo_scan`
 - def `component_rows` — Merge the snapshot's per-component graph/size/complexity stats into rows.
+- def `measurement_status`
 - def `scan` — Read one registered checkout into a RepoSnapshot (never raises).
 
 ## Dependencies

@@ -11,7 +11,7 @@ The one git subprocess seam (rev-parse, status, first-parent log, show, clone/fe
 
 | Module | Size | Classes | Functions |
 |---|---|---:|---:|
-| `guardrail_hub.gitio` | S | 0 | 13 |
+| `guardrail_hub.gitio` | S | 0 | 17 |
 
 ## Public API
 
@@ -29,6 +29,10 @@ The one git subprocess seam (rev-parse, status, first-parent log, show, clone/fe
 - def `first_parent_log` — ``(short sha, YYYY-MM-DD)`` per first-parent commit of ``ref`` touching ``path``.
 - def `show_file` — File content at a commit. Raises RepoAccessError when absent at that commit.
 - def `first_parent_numstat` — ``(date YYYY-MM-DD, [(path, churn_lines), ...])`` per first-parent commit.
+- def `first_parent_commits` — Full commit identity and committer timestamp, in mainline order.
+- def `resolve_commit` — Resolve a revision without allowing it to become a git option.
+- def `tree_files`
+- def `file_size`
 
 ## Dependencies
 

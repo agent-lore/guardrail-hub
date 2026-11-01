@@ -47,7 +47,7 @@ Cli        = ["guardrail_hub.cli", "guardrail_hub.__main__"]
 Web        = ["guardrail_hub.web"]
 Store      = ["guardrail_hub.store"]
 RepoScan   = ["guardrail_hub.repo_scan"]
-History    = ["guardrail_hub.history", "guardrail_hub.hotspots", "guardrail_hub.budget_ledger", "guardrail_hub.coupling", "guardrail_hub.archmap"]
+History    = ["guardrail_hub.history", "guardrail_hub.hotspots", "guardrail_hub.budget_ledger", "guardrail_hub.coupling", "guardrail_hub.archmap", "guardrail_hub.review"]
 Budgets    = ["guardrail_hub.budgets"]
 Drift      = ["guardrail_hub.drift"]
 Installer  = ["guardrail_hub.installer"]
@@ -74,8 +74,8 @@ Foundation  = ["Config", "Models", "Logging", "Errors"]
 # cohesive code solely to satisfy a number. If there is no clean seam and keeping
 # the code together is clearer, adjust the relevant threshold here and explain
 # the affected code and design tradeoff in the same PR. Changing an invariant
-# requires an explicit architecture decision. CI still enforces every accepted
-# budget; see AGENTS.md for the policy.
+# requires an explicit architecture decision. CI enforces every declared
+# invariant budget; see AGENTS.md for the policy.
 #
 # Most budgets below are pinned at the measured value; max_module_lines has
 # headroom. Lower thresholds after improvements where that protects useful gains.
@@ -105,4 +105,22 @@ exclude_modules = [
     "guardrail_hub.errors",
     "guardrail_hub.kit",
     "guardrail_hub.archmap",
+    "guardrail_hub.review",
 ]
+
+
+# The initial 1.6 snapshot establishes a comparable function baseline. Enable
+# changed-code gates after it reaches main; old snapshots lack function identity.
+[review]
+function_complexity = 10
+function_length = 75
+module_lines = 800
+enforce_new = false
+enforce_worsened = false
+
+[policies]
+component_cycles = "invariant"
+module_cycles = "invariant"
+cross_module_private_refs = "invariant"
+tests_private_imports = "invariant"
+tier_skipping_edges = "context"

@@ -24,6 +24,6 @@ Markdown rendering for generated docs: mermaid fences, escape-link rewriting, co
 ## Dependencies
 
 - Depends on: —
-- Used by: [Web](Web.md)
+- Used by: [Store](Store.md), [Web](Web.md)
 
 [← all generated docs](../README.md)

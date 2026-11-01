@@ -17,6 +17,19 @@
 </div>
 {% endif %}
 
+<section class="panel">
+  <h2>Quality review</h2>
+  <p><a href="/repos/{{ snapshot.entry.name }}/changes">Compare revisions and review changes</a></p>
+  <p><strong>{{ snapshot.measurement_status }}</strong>: {{ snapshot.measurement_note }}</p>
+  {% if snapshot.has_metrics %}
+  {% set metadata = snapshot.metrics.get("measurement", {}) %}
+  <p>Analyzer {{ metadata.get("analyzer_version", "unknown") }} · {{ metadata.get("language", "unknown language") }}</p>
+  <p>Scope: <code>{{ metadata.get("scope", {}).get("source_root", "not recorded") }}</code>.
+    Excludes {{ metadata.get("scope", {}).get("excluded", ["not recorded"]) | join(", ") }}.</p>
+  {% endif %}
+  {% include "partials/quality.html" %}
+</section>
+
 {% if snapshot.budgets %}
 <section class="panel">
   <h2>Budgets</h2>
@@ -32,6 +45,7 @@
     <code>docs/generated/metrics.json</code> has two or more commits on
     {{ snapshot.entry.default_branch }}.</p>
   {% endif %}
+  <p class="muted">Each point is one commit, including same-day commits. Spacing follows commit order; measurement boundaries and missing values break lines.</p>
   <div id="trend-charts" class="chart-grid"
        data-history-url="/repos/{{ snapshot.entry.name }}/history.json"></div>
 </section>
@@ -68,7 +82,7 @@
   <table class="data-table">
     <thead>
       <tr><th>Module</th><th>Component</th><th class="num">Churn (decayed)</th><th class="num">Commits</th>
-          <th class="num">SLOC</th><th class="num">Max cx</th><th class="num">Score</th></tr>
+          <th class="num">SLOC</th><th class="num">Max cx</th><th class="num">Score</th><th>Method</th></tr>
     </thead>
     <tbody>
       {% for h in hotspots %}
@@ -80,6 +94,7 @@
         <td class="num">{{ h.sloc if h.sloc else "–" }}</td>
         <td class="num">{{ h.max_complexity }}</td>
         <td class="num"><strong>{{ h.score }}</strong></td>
+        <td>{{ h.method }}</td>
       </tr>
       {% endfor %}
     </tbody>

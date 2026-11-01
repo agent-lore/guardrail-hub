@@ -9,6 +9,7 @@ See AGENTS.md for the policy and document adjustments in the same PR.
 from __future__ import annotations
 
 import pytest
+from scripts.quality import policy_config, policy_errors, policy_mode, violations
 from tests.guardrail import _metrics_toolkit as mt
 from tests.guardrail._common import load_architecture
 
@@ -45,6 +46,10 @@ def _is_known(metrics: dict, key: str) -> bool:
 def test_budgets_hold(metrics: dict, key: str) -> None:
     actual = mt.budget_actual(metrics, key)
     budget = _BUDGETS[key]
+    config = policy_config(load_architecture())
+    if policy_mode(config, key) != "invariant":
+        return  # review/context budgets are reported, not hard gates
+    assert key in metrics["review"]["actuals"], f"Invariant {key} is unsupported for this language"
     assert actual <= budget, (
         f"Architecture budget breached: {key} = {actual}, budget = {budget}.\n"
         + "For an architectural invariant, preserve the rule or explicitly justify\n"
@@ -56,3 +61,12 @@ def test_budgets_hold(metrics: dict, key: str) -> None:
         + "design tradeoff in this PR. See tests/guardrail/AGENTS.md and\n"
         + "docs/generated/metrics.md. CI enforces the accepted configuration."
     )
+
+
+def test_policy_configuration(metrics: dict) -> None:
+    assert not policy_errors(metrics["review"]), "\n".join(policy_errors(metrics["review"]))
+
+
+def test_entity_invariants(metrics: dict) -> None:
+    broken = [r for r in violations(metrics) if r["policy"] == "invariant"]
+    assert not broken, f"Architectural invariants breached: {broken}"

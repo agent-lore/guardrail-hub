@@ -4,7 +4,8 @@ No database: everything derives from the checkouts, so the cache key derives
 from checkout state. Snapshots key on ``(HEAD sha, mtime(metrics.json),
 mtime(architecture.toml))`` — the mtimes catch a regenerated-but-uncommitted
 ``docs/generated/`` that HEAD alone would miss. Histories key on the default
-branch tip.
+branch tip. Dirty worktrees bypass snapshot caching so source-only edits update
+the freshness badge even when generated files have not changed.
 
 With ``[checkouts]`` enabled, ``entries``/``entry()`` hand out entries whose
 ``path`` points at the hub-managed clone, so every reader downstream works on
@@ -20,8 +21,19 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import replace
+from pathlib import Path
 
-from guardrail_hub import budget_ledger, checkouts, coupling, gitio, history, hotspots, repo_scan
+from guardrail_hub import (
+    budget_ledger,
+    checkouts,
+    coupling,
+    docs_render,
+    gitio,
+    history,
+    hotspots,
+    repo_scan,
+    review,
+)
 from guardrail_hub.config import HubConfig
 from guardrail_hub.errors import RepoAccessError
 from guardrail_hub.models import (
@@ -33,7 +45,7 @@ from guardrail_hub.models import (
     RepoSnapshot,
 )
 
-_SnapshotKey = tuple[str, float, float]
+_SnapshotKey = tuple[str, float, float, bool]
 
 
 def _mtime(entry: RepoEntry, rel: str) -> float:
@@ -46,12 +58,14 @@ def _mtime(entry: RepoEntry, rel: str) -> float:
 def _snapshot_key(entry: RepoEntry) -> _SnapshotKey:
     try:
         sha = gitio.head_sha(entry.path)
+        dirty = gitio.is_dirty(entry.path)
     except RepoAccessError:
-        sha = ""
+        sha, dirty = "", False
     return (
         sha,
         _mtime(entry, "docs/generated/metrics.json"),
         _mtime(entry, repo_scan.ARCHITECTURE_TOML),
+        dirty,
     )
 
 
@@ -86,7 +100,7 @@ class RepoStore:
         key = _snapshot_key(entry)
         with self._lock:
             cached = self._snapshots.get(entry.name)
-            if cached is not None and cached[0] == key:
+            if cached is not None and cached[0] == key and not key[3]:
                 return cached[1]
         snapshot = repo_scan.scan(entry)
         if self._config.checkouts.enabled:
@@ -181,6 +195,34 @@ class RepoStore:
         with self._lock:
             self._hotspots[entry.name] = (tip, rows)
         return rows
+
+    def revision_file(self, entry: RepoEntry, revision: str, path: str) -> str:
+        target = docs_render.contained(entry.root, entry.root / path)
+        if target is None or ".git" in Path(path).parts:
+            raise RepoAccessError("file is outside the project")
+        sha = gitio.resolve_commit(entry.path, revision)
+        relative = target.relative_to(entry.root.resolve()).as_posix()
+        relative = f"{entry.subdir}/{relative}" if entry.subdir else relative
+        if gitio.file_size(entry.path, sha, relative) > 2_000_000:
+            raise RepoAccessError("file exceeds display limit")
+        return gitio.show_file(entry.path, sha, relative)
+
+    def comparison(self, entry: RepoEntry, base: str, head: str) -> dict:
+        return review.compare(entry, base, head)
+
+    def quality(self, entry: RepoEntry) -> dict:
+        snapshot = self.snapshot(entry)
+        result = review.current_report(dict(snapshot.metrics or {}), dict(snapshot.architecture))
+        if snapshot.measurement_status in {"stale", "invalid"}:
+            evidence = dict(result.get("quality", {}))
+            for key in ("branch_coverage", "mutation"):
+                evidence[key] = {
+                    **evidence.get(key, {}),
+                    "status": snapshot.measurement_status,
+                    "value": None,
+                }
+            result["quality"] = evidence
+        return result
 
     def refresh(self, name: str | None = None) -> None:
         """Fetch managed clones (when enabled), then forget cached state.

@@ -17,8 +17,8 @@ output for identical input:
 - **Sort every collection before emitting.** Sets and dict iteration order leak
   otherwise. When two renders disagree byte-for-byte, an unsorted collection is
   the first suspect.
-- **No wall-clock, git sha, absolute path, hostname, or env-dependent data** in
-  any artifact. Round ratios; `json.dumps(..., indent=2, sort_keys=True)`.
+- **No wall-clock, git sha, absolute path, or hostname** in any artifact.
+  Record analyzer/dependency versions as deterministic measurement provenance. Round ratios; `json.dumps(..., indent=2, sort_keys=True)`.
 - **No implicit string concatenation** when splitting a long string for line
   width — GitHub code quality flags it (it reads as a missing comma in lists).
   Join the pieces with explicit `+` (plain prefix on placeholder-less pieces);
@@ -110,8 +110,12 @@ relevant threshold in `docs/architecture.toml` in the same PR, explaining the
 affected code and why the design is clearer. Keep the adjustment proportionate;
 lower thresholds after improvements where doing so protects useful gains.
 
-`[budgets]` still defines the accepted configuration: `test_metrics_budgets`
-fails CI on breach until the code or configuration is deliberately changed.
+`[policies]` assigns `invariant`, `review`, or `context` to budget keys and
+entity metrics (`function_complexity`, `function_length`, `module_lines`).
+Cycle budgets default to invariant; other metrics default to review. Only
+invariants block generation. `scripts/metrics_diff.py --check` can additionally
+enforce `[review] enforce_new` and `enforce_worsened` against a comparable base.
+See `docs/quality-guide.md` for bounded exceptions and baseline migration.
 CI must **never** auto-rewrite budgets, and agents must not silently bypass
 checks or raise budgets just to make a build pass. `test_budget_keys_are_known`
 catches a typo'd key so a budget can't be silently disabled.
