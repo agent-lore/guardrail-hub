@@ -199,3 +199,24 @@ def first_parent_numstat(
         churn = (int(added) if added.isdigit() else 0) + (int(deleted) if deleted.isdigit() else 0)
         commits[-1][1].append((_resolve_rename(path), churn))
     return commits
+
+
+def first_parent_commits(repo: Path, ref: str, path: str) -> list[tuple[str, str]]:
+    """Full commit identity and committer timestamp, in mainline order."""
+    out = _git(repo, "log", "--reverse", "--first-parent", "--format=%H %cI", ref, "--", path)
+    return [(line.split(" ", 1)[0], line.split(" ", 1)[1]) for line in out.splitlines()]
+
+
+def resolve_commit(repo: Path, ref: str) -> str:
+    """Resolve a revision without allowing it to become a git option."""
+    if not ref or len(ref) > 200 or ref.startswith("-") or any(c.isspace() for c in ref):
+        raise RepoAccessError("invalid revision")
+    return _git(repo, "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}").strip()
+
+
+def tree_files(repo: Path, sha: str, prefix: str) -> list[str]:
+    return _git(repo, "ls-tree", "-r", "--name-only", sha, "--", prefix).splitlines()
+
+
+def file_size(repo: Path, sha: str, path: str) -> int:
+    return int(_git(repo, "cat-file", "-s", f"{sha}:{path}").strip())

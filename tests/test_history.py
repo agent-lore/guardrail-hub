@@ -29,7 +29,7 @@ def test_mine_history_ordered_oldest_first(tmp_path: Path) -> None:
     assert points[0].date <= points[1].date
 
 
-def test_mine_history_skips_malformed(tmp_path: Path) -> None:
+def test_mine_history_preserves_malformed_as_gap(tmp_path: Path) -> None:
     repo = make_repo(
         tmp_path,
         snapshots=[
@@ -41,7 +41,8 @@ def test_mine_history_skips_malformed(tmp_path: Path) -> None:
 
     points = mine_history(_entry(repo), "main")
 
-    assert [extract(p.metrics, "graph.cross_component_edges") for p in points] == [3, 9]
+    assert [extract(p.metrics, "graph.cross_component_edges") for p in points] == [3, None, 9]
+    assert points[1].status == "invalid"
 
 
 def test_mine_history_empty_when_never_committed(tmp_path: Path) -> None:
@@ -105,3 +106,41 @@ def test_mine_history_subdir_snapshot_path(tmp_path: Path) -> None:
     points = mine_history(entry, "main")
 
     assert [p.metrics["size"]["total_sloc"] for p in points] == [100, 200]
+
+
+def test_history_preserves_same_second_commits_and_full_identity(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path, snapshots=[make_metrics(schema=1), make_metrics(schema=2)])
+    points = mine_history(_entry(repo), "main")
+    assert len(points) == 2
+    assert all(len(p.sha) == 40 and "T" in p.timestamp for p in points)
+    assert points[0].sha != points[1].sha
+    payload = series(points, ["schema"])
+    assert payload["series"]["schema"] == [1, 2]
+    assert len(payload["timestamps"]) == 2
+
+
+def test_definition_boundaries_and_unsupported_metrics_are_explicit(tmp_path: Path) -> None:
+    a = make_metrics(
+        measurement={"analyzer_version": "1", "capabilities": {"domain": "unsupported"}}
+    )
+    b = make_metrics(
+        measurement={"analyzer_version": "2", "capabilities": {"domain": "unsupported"}}
+    )
+    repo = make_repo(tmp_path, snapshots=[a, b])
+    payload = series(
+        mine_history(_entry(repo), "main"), ["domain.models", "graph.component_cycles.count"]
+    )
+    assert payload["boundaries"] == [1]
+    assert payload["series"]["domain.models"] == [None, None]
+    assert payload["value_statuses"]["domain.models"] == ["unsupported", "unsupported"]
+    assert payload["series"]["graph.component_cycles.count"] == [0, 0]
+
+
+def test_invalid_nested_snapshot_and_non_numeric_series_are_gaps(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path, snapshots=[make_metrics(measurement=None), make_metrics()])
+    points = mine_history(_entry(repo), "main")
+    assert points[0].status == "invalid"
+    payload = series(points, ["graph", "graph.component_cycles.count"])
+    assert payload["series"]["graph"] == [None, None]
+    assert payload["value_statuses"]["graph"] == ["invalid", "invalid"]
+    assert payload["series"]["graph.component_cycles.count"] == [None, 0]

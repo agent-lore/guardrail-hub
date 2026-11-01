@@ -21,7 +21,7 @@ FastAPI dashboard: overview, repo detail, doc viewer, compare, drift panel.
 
 ## Dependencies
 
-- Depends on: [Config](Config.md), [DocsRender](DocsRender.md), [Drift](Drift.md), [History](History.md), [Kit](Kit.md), [Logging](Logging.md), [Models](Models.md), [Store](Store.md)
+- Depends on: [Config](Config.md), [DocsRender](DocsRender.md), [Drift](Drift.md), [Errors](Errors.md), [History](History.md), [Kit](Kit.md), [Logging](Logging.md), [Models](Models.md), [Store](Store.md)
 - Used by: [Cli](Cli.md)
 
 [← all generated docs](../README.md)

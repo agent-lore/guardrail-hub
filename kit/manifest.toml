@@ -120,3 +120,19 @@ role = "doc"
 [[files]]
 path = "tests/guardrail/CLAUDE.md"
 role = "doc"
+
+[[files]]
+path = "scripts/quality.py"
+role = "core"
+
+[[files]]
+path = "tests/test_quality.py"
+role = "core"
+
+[[files]]
+path = "tests/guardrail/_measurement.py"
+role = "core"
+
+[[files]]
+path = "docs/quality-guide.md"
+role = "doc"

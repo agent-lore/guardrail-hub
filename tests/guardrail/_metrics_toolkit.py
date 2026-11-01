@@ -7,13 +7,13 @@ two files can never disagree.
 
 Determinism contract (what makes the CI drift gate meaningful):
 
-* everything derives from the working tree only — no timestamps, shas, or
-  tool versions in the payload;
+* everything derives from the working tree only — no timestamps or commit shas; analyzer/tool versions
+  identify the measurement rules;
 * every list is explicitly sorted before it reaches the dict;
 * ratios are rounded to two decimals.
 
-Hard budgets for a subset of these metrics live in ``docs/architecture.toml``
-under ``[budgets]`` and are enforced by ``test_metrics_budgets.py``.
+Budgets and policy classifications live in ``docs/architecture.toml``;
+``test_metrics_budgets.py`` enforces invariants and the PR report flags review thresholds.
 """
 
 from __future__ import annotations
@@ -24,8 +24,9 @@ import pathlib
 from typing import Any
 
 import networkx as nx
+from scripts.quality import policy_config
 from tests.guardrail import _diagram_toolkit as dt
-from tests.guardrail import _private_access
+from tests.guardrail import _measurement, _private_access
 from tests.guardrail._common import (
     CPP_SUFFIXES,
     LANGUAGE,
@@ -135,6 +136,18 @@ def _graph_metrics(components: dict[str, list[str]], tiers: dict[str, list[str]]
 
     return {
         "component_cycles": component_cycles,
+        "edges": [
+            {
+                "source": src,
+                "target": dst,
+                "imports": [
+                    f"{m} -> {i}"
+                    for m, i in module_edges
+                    if component_of(m, components) == src and component_of(i, components) == dst
+                ],
+            }
+            for src, dst in comp_edges
+        ],
         "components": per_component,
         "cross_component_edges": len(comp_edges),
         "cross_component_module_edges": len(crossing),
@@ -319,7 +332,7 @@ def _cpp_function_complexities(
         analysis = lizard.analyze_file(str(path))
         results.extend(
             (
-                f"{module}.{fn.name}",
+                f"{module}.{fn.long_name}",
                 int(fn.cyclomatic_complexity),
                 int(fn.end_line - fn.start_line + 1),
             )
@@ -348,6 +361,22 @@ def _merge_module_complexity(
             entry["max_complexity"] = score
 
 
+def _record_functions(details, functions, module, paths):
+    for name, score, length in functions:
+        identity = name
+        occurrence = 1
+        while identity in details:
+            occurrence += 1
+            identity = f"{name}#{occurrence}"
+        details[identity] = {
+            "complexity": score,
+            "length": length,
+            "module": module,
+            "path": paths[0].relative_to(REPO_ROOT).as_posix(),
+            "paths": [p.relative_to(REPO_ROOT).as_posix() for p in paths],
+        }
+
+
 def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     per_component: dict[str, dict[str, Any]] = {
         comp: {"functions_over_10": 0, "max_complexity": 0, "max_function": ""}
@@ -355,6 +384,7 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
     }
     per_module: dict[str, dict[str, int]] = {}
     all_functions: list[tuple[str, int, int]] = []
+    details: dict[str, dict[str, Any]] = {}
 
     if LANGUAGE == "python":
         for path in sorted(SRC_ROOT.rglob("*.py")):
@@ -362,6 +392,7 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
             comp = component_of(module, components)
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             complexities = _function_complexities(tree, module)
+            _record_functions(details, complexities, module, [path])
             all_functions.extend(complexities)
             _merge_module_complexity(per_module, module, complexities)
             if comp is not None:
@@ -370,6 +401,7 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
         for module, paths in sorted(module_paths().items()):
             comp = component_of(module, components)
             complexities = _cpp_function_complexities(module, paths)
+            _record_functions(details, complexities, module, paths)
             all_functions.extend(complexities)
             _merge_module_complexity(per_module, module, complexities)
             if comp is not None:
@@ -383,6 +415,7 @@ def _complexity_metrics(components: dict[str, list[str]]) -> dict[str, Any]:
         (name for name, _, length in all_functions if length == max_length), default=""
     )
     return {
+        "functions": details,
         "components": per_component,
         "function_lengths": {
             "max": max_length,
@@ -418,6 +451,18 @@ def _domain_metrics() -> dict[str, Any]:
     return {
         "associations": len(dt._associations(models)),
         "models": len(models),
+        "relationships": [
+            {"source": a.src, "target": a.dst, "cardinality": a.card, "field": a.label}
+            for a in dt._associations(models)
+        ],
+        "details": {
+            f"{model.module}.{model.name}": {
+                "fields": {
+                    name: ast.unparse(annotation) for name, annotation in dt._fields(model.node)
+                }
+            }
+            for model in models
+        },
         "models_without_docstrings": sum(1 for m in models if ast.get_docstring(m.node) is None),
     }
 
@@ -460,7 +505,11 @@ def _test_metrics(src_lines: int) -> dict[str, Any]:
     test_lines = sum(
         _physical_lines(p.read_text(encoding="utf-8"))
         for p in sorted(tests_root.rglob("*"))
-        if p.suffix in suffixes
+        if p.is_file()
+        and p.suffix in suffixes
+        and not p.relative_to(tests_root).as_posix().startswith("guardrail/")
+        and p.relative_to(tests_root).as_posix()
+        not in {"test_metrics_diff.py", "test_metrics_history.py", "test_quality.py"}
     )
     return {
         "ratio": round(test_lines / src_lines, 2) if src_lines else 0.0,
@@ -483,6 +532,8 @@ def compute_metrics() -> dict[str, Any]:
     complexity_per_module = complexity.pop("per_module")
     modules = {
         module: {
+            "component": component_of(module, components),
+            "path": module_paths()[module][0].relative_to(REPO_ROOT).as_posix(),
             "functions": complexity_per_module.get(module, {}).get("functions", 0),
             "lines": stats["lines"],
             "max_complexity": complexity_per_module.get(module, {}).get("max_complexity", 0),
@@ -490,9 +541,23 @@ def compute_metrics() -> dict[str, Any]:
         }
         for module, stats in size_per_module.items()
     }
-    return {
+    provenance = _measurement.measurement()
+    domain = _domain_metrics()
+    result = {
+        "measurement": provenance,
+        "quality": _measurement.quality_evidence(provenance),
+        "review": policy_config(arch),
+        "components": {
+            name: {
+                "prefixes": prefixes,
+                "tier": next((tier for tier, members in tiers.items() if name in members), ""),
+            }
+            for name, prefixes in components.items()
+        },
+        "functions": complexity.pop("functions"),
         "complexity": complexity,
-        "domain": _domain_metrics(),
+        "domain_models": domain.pop("details"),
+        "domain": domain,
         "graph": _graph_metrics(components, tiers),
         "mcp": _mcp_metrics(),
         "modules": modules,
@@ -501,6 +566,15 @@ def compute_metrics() -> dict[str, Any]:
         "size": size,
         "tests": _test_metrics(size["total_lines"]),
     }
+    result["review"]["actuals"] = {
+        key: budget_actual(result, key)
+        for key in arch.get("budgets", {})
+        if key in BUDGET_ACTUALS
+        and not (
+            LANGUAGE == "cpp" and key in {"cross_module_private_refs", "tests_private_imports"}
+        )
+    }
+    return result
 
 
 # One entry per declarable [budgets] key. Module-level so the hub (and any

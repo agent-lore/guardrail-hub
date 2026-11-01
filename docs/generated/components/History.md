@@ -14,8 +14,9 @@ The time-series layer: metric history mined from committed metrics.json, plus th
 | `guardrail_hub.archmap` | XS | 1 | 1 |
 | `guardrail_hub.budget_ledger` | XS | 0 | 3 |
 | `guardrail_hub.coupling` | XS | 0 | 1 |
-| `guardrail_hub.history` | XS | 0 | 4 |
+| `guardrail_hub.history` | S | 0 | 6 |
 | `guardrail_hub.hotspots` | S | 0 | 2 |
+| `guardrail_hub.review` | S | 0 | 5 |
 
 ## Public API
 
@@ -36,14 +37,23 @@ The time-series layer: metric history mined from committed metrics.json, plus th
 - def `mine_history` — One MetricPoint per first-parent commit of ``ref`` touching the snapshot.
 - def `extract` — Value at a dotted path; a list-valued path is summarized via ``.count``.
 - def `series` — Chart-ready shape: dates/shas plus one value list per requested key.
+- def `measurement_basis`
+- def `value_status`
 
 ### `guardrail_hub.hotspots`
 - def `decay_weight` — Recency weight: 1.0 for the newest commit, halving every 90 days.
 - def `mine_hotspots` — Hotspot rows on ``ref``'s first-parent history, hottest first.
 
+### `guardrail_hub.review`
+- def `engine` — Use the shipped canonical engine; never execute code from monitored repos.
+- def `verify_source`
+- def `read_revision`
+- def `compare`
+- def `current_report` — Current violations/evidence without claiming a historical improvement.
+
 ## Dependencies
 
-- Depends on: [Errors](Errors.md), [Gitio](Gitio.md), [Models](Models.md)
+- Depends on: [Budgets](Budgets.md), [Errors](Errors.md), [Gitio](Gitio.md), [Kit](Kit.md), [Models](Models.md)
 - Used by: [Store](Store.md), [Web](Web.md)
 
 [← all generated docs](../README.md)

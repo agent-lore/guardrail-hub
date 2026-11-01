@@ -59,8 +59,10 @@ graph TD
   Drift --> Kit
   Drift --> Models
   Gitio --> Errors
+  History --> Budgets
   History --> Errors
   History --> Gitio
+  History --> Kit
   History --> Models
   Installer --> Errors
   Installer --> Gitio
@@ -72,6 +74,7 @@ graph TD
   RepoScan --> Models
   Store --> Checkouts
   Store --> Config
+  Store --> DocsRender
   Store --> Errors
   Store --> Gitio
   Store --> History
@@ -80,6 +83,7 @@ graph TD
   Web --> Config
   Web --> DocsRender
   Web --> Drift
+  Web --> Errors
   Web --> History
   Web --> Kit
   Web --> Logging
@@ -95,16 +99,17 @@ graph TD
   linkStyle 12 stroke:#bbb
   linkStyle 14 stroke:#bbb
   linkStyle 15 stroke:#bbb
-  linkStyle 16 stroke:#bbb
-  linkStyle 18 stroke:#bbb
-  linkStyle 19 stroke:#bbb
-  linkStyle 22 stroke:#bbb
+  linkStyle 17 stroke:#bbb
+  linkStyle 20 stroke:#bbb
+  linkStyle 21 stroke:#bbb
   linkStyle 24 stroke:#bbb
   linkStyle 26 stroke:#bbb
   linkStyle 28 stroke:#bbb
-  linkStyle 29 stroke:#bbb
+  linkStyle 30 stroke:#bbb
   linkStyle 32 stroke:#bbb
-  linkStyle 34 stroke:#999,stroke-dasharray:4
-  linkStyle 39 stroke:#999,stroke-dasharray:4
+  linkStyle 35 stroke:#bbb
+  linkStyle 37 stroke:#999,stroke-dasharray:4
   linkStyle 40 stroke:#999,stroke-dasharray:4
+  linkStyle 43 stroke:#999,stroke-dasharray:4
+  linkStyle 44 stroke:#999,stroke-dasharray:4
 ```

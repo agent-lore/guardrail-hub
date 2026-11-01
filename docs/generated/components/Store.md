@@ -20,7 +20,7 @@ In-process cache over the scanners, keyed on checkout state (HEAD sha + mtimes).
 
 ## Dependencies
 
-- Depends on: [Checkouts](Checkouts.md), [Config](Config.md), [Errors](Errors.md), [Gitio](Gitio.md), [History](History.md), [Models](Models.md), [RepoScan](RepoScan.md)
+- Depends on: [Checkouts](Checkouts.md), [Config](Config.md), [DocsRender](DocsRender.md), [Errors](Errors.md), [Gitio](Gitio.md), [History](History.md), [Models](Models.md), [RepoScan](RepoScan.md)
 - Used by: [Web](Web.md)
 
 [← all generated docs](../README.md)

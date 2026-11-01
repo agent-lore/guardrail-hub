@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from scripts.quality import policy_mode, render_report, report
 from tests.guardrail._common import LANGUAGE, load_architecture, with_header
 from tests.guardrail._metrics_toolkit import (
     COMPLEXITY_THRESHOLD,
@@ -31,6 +32,7 @@ def _budget_table(metrics: dict[str, Any], budgets: dict[str, int]) -> list[str]
     lines = [
         "## Budgets",
         "",
+        "Only invariant budgets block generation; review/context thresholds are reported.",
         "Accepted budgets from `docs/architecture.toml [budgets]`, enforced in CI by",
         "`tests/guardrail/test_metrics_budgets.py`. Headroom = budget - actual.",
         "",
@@ -41,12 +43,14 @@ def _budget_table(metrics: dict[str, Any], budgets: dict[str, int]) -> list[str]
         "is clearer, adjust the relevant threshold and explain the design tradeoff",
         "in the same PR. Lower thresholds when that protects useful improvements.",
         "",
-        "| Metric | Actual | Budget | Headroom |",
-        "|---|---:|---:|---:|",
+        "| Metric | Actual | Budget | Headroom | Policy |",
+        "|---|---:|---:|---:|---|",
     ]
     for key in sorted(budgets):
         actual = budget_actual(metrics, key)
-        lines.append(f"| `{key}` | {actual} | {budgets[key]} | {budgets[key] - actual} |")
+        lines.append(
+            f"| `{key}` | {actual} | {budgets[key]} | {budgets[key] - actual} | {policy_mode(metrics.get('review', {}), key)} |"
+        )
     return lines
 
 
@@ -198,7 +202,26 @@ def _summary_section(metrics: dict[str, Any]) -> list[str]:
 def render_metrics_md(metrics: dict[str, Any], budgets: dict[str, int]) -> str:
     sections = [
         ["# Architecture metrics"],
+        [
+            "## Measurement scope",
+            "",
+            "```json",
+            json.dumps(metrics.get("measurement", {}), indent=2, sort_keys=True),
+            "```",
+            "",
+            "Test/source ratio is a volume statistic, not test effectiveness; kit tooling is excluded.",
+        ],
         _budget_table(metrics, budgets),
+        [render_report(report(metrics, metrics))],
+        [
+            "## Quality evidence",
+            "",
+            "Optional measurements are source-bound; missing or stale evidence is not a score.",
+            "",
+            "```json",
+            json.dumps(metrics.get("quality", {}), indent=2, sort_keys=True),
+            "```",
+        ],
         _graph_section(metrics),
         _component_table(metrics),
         _size_section(metrics),

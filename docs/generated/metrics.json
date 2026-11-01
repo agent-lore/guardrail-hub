@@ -3,7 +3,7 @@
     "components": {
       "Budgets": {
         "functions_over_10": 0,
-        "max_complexity": 7,
+        "max_complexity": 8,
         "max_function": "guardrail_hub.budgets.budget_statuses"
       },
       "Checkouts": {
@@ -42,9 +42,9 @@
         "max_function": "guardrail_hub.gitio.first_parent_numstat"
       },
       "History": {
-        "functions_over_10": 2,
-        "max_complexity": 15,
-        "max_function": "guardrail_hub.coupling.mine_coupling"
+        "functions_over_10": 3,
+        "max_complexity": 16,
+        "max_function": "guardrail_hub.history.series"
       },
       "Installer": {
         "functions_over_10": 2,
@@ -67,9 +67,9 @@
         "max_function": "guardrail_hub.models.BudgetEvent.kind"
       },
       "RepoScan": {
-        "functions_over_10": 0,
-        "max_complexity": 8,
-        "max_function": "guardrail_hub.repo_scan.scan"
+        "functions_over_10": 1,
+        "max_complexity": 11,
+        "max_function": "guardrail_hub.repo_scan.measurement_status"
       },
       "Store": {
         "functions_over_10": 0,
@@ -78,26 +78,31 @@
       },
       "Web": {
         "functions_over_10": 0,
-        "max_complexity": 6,
-        "max_function": "guardrail_hub.web.create_app.ledger_panel"
+        "max_complexity": 9,
+        "max_function": "guardrail_hub.web._worst_level"
       }
     },
     "function_lengths": {
-      "max": 236,
+      "max": 292,
       "max_function": "guardrail_hub.web.create_app",
       "median": 9,
       "over_75": 1,
       "p90": 28
     },
-    "functions_over_10": 6,
+    "functions_over_10": 8,
     "max": 19,
     "median": 3,
-    "p90": 7,
+    "p90": 9,
     "top_functions": [
       {
         "complexity": 19,
         "length": 38,
         "qualname": "guardrail_hub.cli._cmd_drift"
+      },
+      {
+        "complexity": 16,
+        "length": 25,
+        "qualname": "guardrail_hub.history.series"
       },
       {
         "complexity": 16,
@@ -125,6 +130,11 @@
         "qualname": "guardrail_hub.archmap.load_archmap"
       },
       {
+        "complexity": 11,
+        "length": 26,
+        "qualname": "guardrail_hub.repo_scan.measurement_status"
+      },
+      {
         "complexity": 10,
         "length": 22,
         "qualname": "guardrail_hub.drift._extras"
@@ -133,32 +143,1705 @@
         "complexity": 10,
         "length": 60,
         "qualname": "guardrail_hub.installer.build_architecture_skeleton"
-      },
-      {
-        "complexity": 10,
-        "length": 24,
-        "qualname": "guardrail_hub.kit.load_manifest"
-      },
-      {
-        "complexity": 9,
-        "length": 17,
-        "qualname": "guardrail_hub.drift._strip_docstrings"
       }
     ],
-    "total_functions": 139
+    "total_functions": 158
+  },
+  "components": {
+    "Budgets": {
+      "prefixes": [
+        "guardrail_hub.budgets"
+      ],
+      "tier": "Core"
+    },
+    "Checkouts": {
+      "prefixes": [
+        "guardrail_hub.checkouts"
+      ],
+      "tier": "Core"
+    },
+    "Cli": {
+      "prefixes": [
+        "guardrail_hub.cli",
+        "guardrail_hub.__main__"
+      ],
+      "tier": "Entrypoints"
+    },
+    "Config": {
+      "prefixes": [
+        "guardrail_hub.config"
+      ],
+      "tier": "Foundation"
+    },
+    "DocsRender": {
+      "prefixes": [
+        "guardrail_hub.docs_render"
+      ],
+      "tier": "Core"
+    },
+    "Drift": {
+      "prefixes": [
+        "guardrail_hub.drift"
+      ],
+      "tier": "Core"
+    },
+    "Errors": {
+      "prefixes": [
+        "guardrail_hub.errors"
+      ],
+      "tier": "Foundation"
+    },
+    "Gitio": {
+      "prefixes": [
+        "guardrail_hub.gitio"
+      ],
+      "tier": "Core"
+    },
+    "History": {
+      "prefixes": [
+        "guardrail_hub.history",
+        "guardrail_hub.hotspots",
+        "guardrail_hub.budget_ledger",
+        "guardrail_hub.coupling",
+        "guardrail_hub.archmap",
+        "guardrail_hub.review"
+      ],
+      "tier": "Core"
+    },
+    "Installer": {
+      "prefixes": [
+        "guardrail_hub.installer"
+      ],
+      "tier": "Core"
+    },
+    "Kit": {
+      "prefixes": [
+        "guardrail_hub.kit"
+      ],
+      "tier": "Core"
+    },
+    "Logging": {
+      "prefixes": [
+        "guardrail_hub.logging_setup"
+      ],
+      "tier": "Foundation"
+    },
+    "Models": {
+      "prefixes": [
+        "guardrail_hub.models"
+      ],
+      "tier": "Foundation"
+    },
+    "RepoScan": {
+      "prefixes": [
+        "guardrail_hub.repo_scan"
+      ],
+      "tier": "Core"
+    },
+    "Store": {
+      "prefixes": [
+        "guardrail_hub.store"
+      ],
+      "tier": "Core"
+    },
+    "Web": {
+      "prefixes": [
+        "guardrail_hub.web"
+      ],
+      "tier": "Entrypoints"
+    }
   },
   "domain": {
     "associations": 5,
     "models": 11,
-    "models_without_docstrings": 0
+    "models_without_docstrings": 0,
+    "relationships": [
+      {
+        "cardinality": "0..*",
+        "field": "files",
+        "source": "DriftReport",
+        "target": "FileDrift"
+      },
+      {
+        "cardinality": "0..*",
+        "field": "budgets",
+        "source": "RepoSnapshot",
+        "target": "BudgetStatus"
+      },
+      {
+        "cardinality": "0..*",
+        "field": "components",
+        "source": "RepoSnapshot",
+        "target": "ComponentRow"
+      },
+      {
+        "cardinality": "1",
+        "field": "entry",
+        "source": "RepoSnapshot",
+        "target": "RepoEntry"
+      },
+      {
+        "cardinality": "1",
+        "field": "status",
+        "source": "RepoSnapshot",
+        "target": "RepoStatus"
+      }
+    ]
+  },
+  "domain_models": {
+    "guardrail_hub.models.BudgetEvent": {
+      "fields": {
+        "date": "datetime.date",
+        "key": "str",
+        "new": "int | None",
+        "old": "int | None",
+        "sha": "str"
+      }
+    },
+    "guardrail_hub.models.BudgetStatus": {
+      "fields": {
+        "actual": "int | None",
+        "budget": "int",
+        "headroom": "int | None",
+        "key": "str",
+        "level": "BudgetLevel",
+        "policy": "str"
+      }
+    },
+    "guardrail_hub.models.ComponentRow": {
+      "fields": {
+        "fan_in": "int",
+        "fan_out": "int",
+        "functions_over_10": "int",
+        "instability": "float | None",
+        "lines": "int",
+        "max_complexity": "int",
+        "modules": "int",
+        "name": "str",
+        "sloc": "int",
+        "tier": "str"
+      }
+    },
+    "guardrail_hub.models.CouplingPair": {
+      "fields": {
+        "changes_a": "int",
+        "changes_b": "int",
+        "co_changes": "int",
+        "component_a": "str",
+        "component_b": "str",
+        "module_a": "str",
+        "module_b": "str",
+        "strength": "float",
+        "weighted_co": "float"
+      }
+    },
+    "guardrail_hub.models.DriftReport": {
+      "fields": {
+        "files": "tuple[FileDrift, ...]",
+        "installed_version": "str",
+        "kit_version": "str",
+        "repo": "str"
+      }
+    },
+    "guardrail_hub.models.FileDrift": {
+      "fields": {
+        "detail": "str",
+        "path": "str",
+        "role": "str",
+        "status": "DriftStatus"
+      }
+    },
+    "guardrail_hub.models.MetricPoint": {
+      "fields": {
+        "date": "datetime.date",
+        "error": "str",
+        "metrics": "Mapping[str, Any]",
+        "sha": "str",
+        "status": "str",
+        "timestamp": "str"
+      }
+    },
+    "guardrail_hub.models.ModuleHotspot": {
+      "fields": {
+        "churn": "float",
+        "commits": "int",
+        "component": "str",
+        "max_complexity": "int",
+        "method": "str",
+        "module": "str",
+        "score": "float",
+        "sloc": "int"
+      }
+    },
+    "guardrail_hub.models.RepoEntry": {
+      "fields": {
+        "default_branch": "str",
+        "family": "str",
+        "name": "str",
+        "path": "Path",
+        "subdir": "str"
+      }
+    },
+    "guardrail_hub.models.RepoSnapshot": {
+      "fields": {
+        "architecture": "Mapping[str, Any]",
+        "budgets": "tuple[BudgetStatus, ...]",
+        "components": "tuple[ComponentRow, ...]",
+        "docs": "tuple[str, ...]",
+        "entry": "RepoEntry",
+        "measurement_note": "str",
+        "measurement_status": "str",
+        "metrics": "Mapping[str, Any] | None",
+        "schema": "int | None",
+        "status": "RepoStatus"
+      }
+    },
+    "guardrail_hub.models.RepoStatus": {
+      "fields": {
+        "branch": "str",
+        "dirty": "bool",
+        "error": "str",
+        "fetch_error": "str",
+        "fetched_at": "str",
+        "head_sha": "str",
+        "is_git": "bool",
+        "managed": "bool",
+        "on_default_branch": "bool",
+        "present": "bool"
+      }
+    }
+  },
+  "functions": {
+    "guardrail_hub.archmap.ArchMap.component_of": {
+      "complexity": 6,
+      "length": 8,
+      "module": "guardrail_hub.archmap",
+      "path": "src/guardrail_hub/archmap.py",
+      "paths": [
+        "src/guardrail_hub/archmap.py"
+      ]
+    },
+    "guardrail_hub.archmap.ArchMap.module_of": {
+      "complexity": 6,
+      "length": 19,
+      "module": "guardrail_hub.archmap",
+      "path": "src/guardrail_hub/archmap.py",
+      "paths": [
+        "src/guardrail_hub/archmap.py"
+      ]
+    },
+    "guardrail_hub.archmap.load_archmap": {
+      "complexity": 11,
+      "length": 27,
+      "module": "guardrail_hub.archmap",
+      "path": "src/guardrail_hub/archmap.py",
+      "paths": [
+        "src/guardrail_hub/archmap.py"
+      ]
+    },
+    "guardrail_hub.budget_ledger._budgets_at": {
+      "complexity": 6,
+      "length": 14,
+      "module": "guardrail_hub.budget_ledger",
+      "path": "src/guardrail_hub/budget_ledger.py",
+      "paths": [
+        "src/guardrail_hub/budget_ledger.py"
+      ]
+    },
+    "guardrail_hub.budget_ledger.architecture_path": {
+      "complexity": 2,
+      "length": 3,
+      "module": "guardrail_hub.budget_ledger",
+      "path": "src/guardrail_hub/budget_ledger.py",
+      "paths": [
+        "src/guardrail_hub/budget_ledger.py"
+      ]
+    },
+    "guardrail_hub.budget_ledger.mine_ledger": {
+      "complexity": 7,
+      "length": 22,
+      "module": "guardrail_hub.budget_ledger",
+      "path": "src/guardrail_hub/budget_ledger.py",
+      "paths": [
+        "src/guardrail_hub/budget_ledger.py"
+      ]
+    },
+    "guardrail_hub.budget_ledger.raise_counts": {
+      "complexity": 3,
+      "length": 7,
+      "module": "guardrail_hub.budget_ledger",
+      "path": "src/guardrail_hub/budget_ledger.py",
+      "paths": [
+        "src/guardrail_hub/budget_ledger.py"
+      ]
+    },
+    "guardrail_hub.budgets._level": {
+      "complexity": 5,
+      "length": 8,
+      "module": "guardrail_hub.budgets",
+      "path": "src/guardrail_hub/budgets.py",
+      "paths": [
+        "src/guardrail_hub/budgets.py"
+      ]
+    },
+    "guardrail_hub.budgets.budget_actual": {
+      "complexity": 7,
+      "length": 15,
+      "module": "guardrail_hub.budgets",
+      "path": "src/guardrail_hub/budgets.py",
+      "paths": [
+        "src/guardrail_hub/budgets.py"
+      ]
+    },
+    "guardrail_hub.budgets.budget_statuses": {
+      "complexity": 8,
+      "length": 26,
+      "module": "guardrail_hub.budgets",
+      "path": "src/guardrail_hub/budgets.py",
+      "paths": [
+        "src/guardrail_hub/budgets.py"
+      ]
+    },
+    "guardrail_hub.checkouts.clone_dir": {
+      "complexity": 2,
+      "length": 10,
+      "module": "guardrail_hub.checkouts",
+      "path": "src/guardrail_hub/checkouts.py",
+      "paths": [
+        "src/guardrail_hub/checkouts.py"
+      ]
+    },
+    "guardrail_hub.checkouts.last_fetch": {
+      "complexity": 3,
+      "length": 15,
+      "module": "guardrail_hub.checkouts",
+      "path": "src/guardrail_hub/checkouts.py",
+      "paths": [
+        "src/guardrail_hub/checkouts.py"
+      ]
+    },
+    "guardrail_hub.checkouts.refresh": {
+      "complexity": 7,
+      "length": 28,
+      "module": "guardrail_hub.checkouts",
+      "path": "src/guardrail_hub/checkouts.py",
+      "paths": [
+        "src/guardrail_hub/checkouts.py"
+      ]
+    },
+    "guardrail_hub.checkouts.resolve": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.checkouts",
+      "path": "src/guardrail_hub/checkouts.py",
+      "paths": [
+        "src/guardrail_hub/checkouts.py"
+      ]
+    },
+    "guardrail_hub.cli._build_parser": {
+      "complexity": 1,
+      "length": 28,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.cli._cmd_apply": {
+      "complexity": 1,
+      "length": 12,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.cli._cmd_drift": {
+      "complexity": 19,
+      "length": 38,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.cli._cmd_serve": {
+      "complexity": 1,
+      "length": 4,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.cli._cmd_version": {
+      "complexity": 1,
+      "length": 6,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.cli.main": {
+      "complexity": 6,
+      "length": 15,
+      "module": "guardrail_hub.cli",
+      "path": "src/guardrail_hub/cli.py",
+      "paths": [
+        "src/guardrail_hub/cli.py"
+      ]
+    },
+    "guardrail_hub.config.HubConfig.repo": {
+      "complexity": 3,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._apply_env_overrides": {
+      "complexity": 8,
+      "length": 27,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._config_dir": {
+      "complexity": 2,
+      "length": 9,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._default_checkouts_dir": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._default_config_candidates": {
+      "complexity": 1,
+      "length": 6,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._optional_bool": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._optional_int": {
+      "complexity": 3,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._optional_str": {
+      "complexity": 3,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._optional_subdir": {
+      "complexity": 5,
+      "length": 9,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._parse_bool_env": {
+      "complexity": 3,
+      "length": 7,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._parse_checkouts": {
+      "complexity": 6,
+      "length": 14,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._parse_repos": {
+      "complexity": 7,
+      "length": 24,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._parse_server": {
+      "complexity": 3,
+      "length": 9,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config._require_str": {
+      "complexity": 3,
+      "length": 5,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config.find_config_path": {
+      "complexity": 5,
+      "length": 16,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.config.load_config": {
+      "complexity": 4,
+      "length": 16,
+      "module": "guardrail_hub.config",
+      "path": "src/guardrail_hub/config.py",
+      "paths": [
+        "src/guardrail_hub/config.py"
+      ]
+    },
+    "guardrail_hub.coupling.mine_coupling": {
+      "complexity": 15,
+      "length": 52,
+      "module": "guardrail_hub.coupling",
+      "path": "src/guardrail_hub/coupling.py",
+      "paths": [
+        "src/guardrail_hub/coupling.py"
+      ]
+    },
+    "guardrail_hub.docs_render._HubRenderer.fence": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render._is_external": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render._make_parser": {
+      "complexity": 1,
+      "length": 13,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render._make_parser._rewrite_links": {
+      "complexity": 6,
+      "length": 7,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render.contained": {
+      "complexity": 2,
+      "length": 8,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render.render_markdown": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render.render_plain": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.docs_render.rewrite_href": {
+      "complexity": 6,
+      "length": 21,
+      "module": "guardrail_hub.docs_render",
+      "path": "src/guardrail_hub/docs_render.py",
+      "paths": [
+        "src/guardrail_hub/docs_render.py"
+      ]
+    },
+    "guardrail_hub.drift._FoldStringConcat.visit_BinOp": {
+      "complexity": 12,
+      "length": 22,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._adapters_enabled": {
+      "complexity": 4,
+      "length": 9,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._compare_python": {
+      "complexity": 3,
+      "length": 14,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._extras": {
+      "complexity": 10,
+      "length": 22,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._load_architecture": {
+      "complexity": 3,
+      "length": 8,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._resolve": {
+      "complexity": 3,
+      "length": 5,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._string_parts": {
+      "complexity": 4,
+      "length": 7,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift._strip_docstrings": {
+      "complexity": 9,
+      "length": 17,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift.compare_repo": {
+      "complexity": 7,
+      "length": 39,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift.installed_version": {
+      "complexity": 4,
+      "length": 8,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.drift.normalized_ast_dump": {
+      "complexity": 1,
+      "length": 6,
+      "module": "guardrail_hub.drift",
+      "path": "src/guardrail_hub/drift.py",
+      "paths": [
+        "src/guardrail_hub/drift.py"
+      ]
+    },
+    "guardrail_hub.gitio._git": {
+      "complexity": 5,
+      "length": 19,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio._resolve_rename": {
+      "complexity": 5,
+      "length": 13,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.branch_tip": {
+      "complexity": 2,
+      "length": 6,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.checkout_reset": {
+      "complexity": 1,
+      "length": 9,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.clone": {
+      "complexity": 1,
+      "length": 21,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.current_branch": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.fetch": {
+      "complexity": 1,
+      "length": 17,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.file_size": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.first_parent_commits": {
+      "complexity": 2,
+      "length": 4,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.first_parent_log": {
+      "complexity": 4,
+      "length": 13,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.first_parent_numstat": {
+      "complexity": 8,
+      "length": 34,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.head_sha": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.is_dirty": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.is_git_repo": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.remote_url": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.resolve_commit": {
+      "complexity": 6,
+      "length": 5,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.set_remote_url": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.show_file": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.gitio.tree_files": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.gitio",
+      "path": "src/guardrail_hub/gitio.py",
+      "paths": [
+        "src/guardrail_hub/gitio.py"
+      ]
+    },
+    "guardrail_hub.history.extract": {
+      "complexity": 8,
+      "length": 32,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.history.measurement_basis": {
+      "complexity": 1,
+      "length": 4,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.history.mine_history": {
+      "complexity": 9,
+      "length": 34,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.history.series": {
+      "complexity": 16,
+      "length": 25,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.history.snapshot_path": {
+      "complexity": 2,
+      "length": 3,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.history.value_status": {
+      "complexity": 9,
+      "length": 15,
+      "module": "guardrail_hub.history",
+      "path": "src/guardrail_hub/history.py",
+      "paths": [
+        "src/guardrail_hub/history.py"
+      ]
+    },
+    "guardrail_hub.hotspots._build_row": {
+      "complexity": 5,
+      "length": 37,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.hotspots._mapping_at": {
+      "complexity": 4,
+      "length": 7,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.hotspots._module_churn": {
+      "complexity": 3,
+      "length": 7,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.hotspots._weighted_churn": {
+      "complexity": 6,
+      "length": 17,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.hotspots.decay_weight": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.hotspots.mine_hotspots": {
+      "complexity": 6,
+      "length": 32,
+      "module": "guardrail_hub.hotspots",
+      "path": "src/guardrail_hub/hotspots.py",
+      "paths": [
+        "src/guardrail_hub/hotspots.py"
+      ]
+    },
+    "guardrail_hub.installer._component_name": {
+      "complexity": 3,
+      "length": 3,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._detect_cpp_src_layout": {
+      "complexity": 2,
+      "length": 3,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._detect_root_package": {
+      "complexity": 6,
+      "length": 10,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._detect_src_layout": {
+      "complexity": 3,
+      "length": 9,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._files_to_apply": {
+      "complexity": 6,
+      "length": 9,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._load_pyproject": {
+      "complexity": 3,
+      "length": 8,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._padded": {
+      "complexity": 3,
+      "length": 3,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._tiers_from_importlinter": {
+      "complexity": 14,
+      "length": 33,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer._tiers_from_importlinter._mods": {
+      "complexity": 5,
+      "length": 6,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer.apply_kit": {
+      "complexity": 16,
+      "length": 67,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.installer.build_architecture_skeleton": {
+      "complexity": 10,
+      "length": 60,
+      "module": "guardrail_hub.installer",
+      "path": "src/guardrail_hub/installer.py",
+      "paths": [
+        "src/guardrail_hub/installer.py"
+      ]
+    },
+    "guardrail_hub.kit.KitFile.is_python": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.kit",
+      "path": "src/guardrail_hub/kit.py",
+      "paths": [
+        "src/guardrail_hub/kit.py"
+      ]
+    },
+    "guardrail_hub.kit.KitFile.source": {
+      "complexity": 2,
+      "length": 6,
+      "module": "guardrail_hub.kit",
+      "path": "src/guardrail_hub/kit.py",
+      "paths": [
+        "src/guardrail_hub/kit.py"
+      ]
+    },
+    "guardrail_hub.kit.kit_root": {
+      "complexity": 3,
+      "length": 9,
+      "module": "guardrail_hub.kit",
+      "path": "src/guardrail_hub/kit.py",
+      "paths": [
+        "src/guardrail_hub/kit.py"
+      ]
+    },
+    "guardrail_hub.kit.kit_version": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.kit",
+      "path": "src/guardrail_hub/kit.py",
+      "paths": [
+        "src/guardrail_hub/kit.py"
+      ]
+    },
+    "guardrail_hub.kit.load_manifest": {
+      "complexity": 10,
+      "length": 24,
+      "module": "guardrail_hub.kit",
+      "path": "src/guardrail_hub/kit.py",
+      "paths": [
+        "src/guardrail_hub/kit.py"
+      ]
+    },
+    "guardrail_hub.logging_setup.configure_logging": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.logging_setup",
+      "path": "src/guardrail_hub/logging_setup.py",
+      "paths": [
+        "src/guardrail_hub/logging_setup.py"
+      ]
+    },
+    "guardrail_hub.models.BudgetEvent.kind": {
+      "complexity": 4,
+      "length": 6,
+      "module": "guardrail_hub.models",
+      "path": "src/guardrail_hub/models.py",
+      "paths": [
+        "src/guardrail_hub/models.py"
+      ]
+    },
+    "guardrail_hub.models.DriftReport.clean": {
+      "complexity": 2,
+      "length": 2,
+      "module": "guardrail_hub.models",
+      "path": "src/guardrail_hub/models.py",
+      "paths": [
+        "src/guardrail_hub/models.py"
+      ]
+    },
+    "guardrail_hub.models.RepoEntry.root": {
+      "complexity": 2,
+      "length": 3,
+      "module": "guardrail_hub.models",
+      "path": "src/guardrail_hub/models.py",
+      "paths": [
+        "src/guardrail_hub/models.py"
+      ]
+    },
+    "guardrail_hub.models.RepoSnapshot.has_metrics": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.models",
+      "path": "src/guardrail_hub/models.py",
+      "paths": [
+        "src/guardrail_hub/models.py"
+      ]
+    },
+    "guardrail_hub.repo_scan._doc_listing": {
+      "complexity": 4,
+      "length": 7,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan._load_architecture": {
+      "complexity": 3,
+      "length": 8,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan._load_metrics": {
+      "complexity": 7,
+      "length": 14,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan._status": {
+      "complexity": 6,
+      "length": 19,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan._tier_of": {
+      "complexity": 5,
+      "length": 7,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan.component_rows": {
+      "complexity": 5,
+      "length": 29,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan.measurement_status": {
+      "complexity": 11,
+      "length": 26,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.repo_scan.scan": {
+      "complexity": 9,
+      "length": 41,
+      "module": "guardrail_hub.repo_scan",
+      "path": "src/guardrail_hub/repo_scan.py",
+      "paths": [
+        "src/guardrail_hub/repo_scan.py"
+      ]
+    },
+    "guardrail_hub.review.compare": {
+      "complexity": 3,
+      "length": 10,
+      "module": "guardrail_hub.review",
+      "path": "src/guardrail_hub/review.py",
+      "paths": [
+        "src/guardrail_hub/review.py"
+      ]
+    },
+    "guardrail_hub.review.current_report": {
+      "complexity": 5,
+      "length": 14,
+      "module": "guardrail_hub.review",
+      "path": "src/guardrail_hub/review.py",
+      "paths": [
+        "src/guardrail_hub/review.py"
+      ]
+    },
+    "guardrail_hub.review.engine": {
+      "complexity": 3,
+      "length": 10,
+      "module": "guardrail_hub.review",
+      "path": "src/guardrail_hub/review.py",
+      "paths": [
+        "src/guardrail_hub/review.py"
+      ]
+    },
+    "guardrail_hub.review.read_revision": {
+      "complexity": 5,
+      "length": 17,
+      "module": "guardrail_hub.review",
+      "path": "src/guardrail_hub/review.py",
+      "paths": [
+        "src/guardrail_hub/review.py"
+      ]
+    },
+    "guardrail_hub.review.verify_source": {
+      "complexity": 8,
+      "length": 20,
+      "module": "guardrail_hub.review",
+      "path": "src/guardrail_hub/review.py",
+      "paths": [
+        "src/guardrail_hub/review.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.__init__": {
+      "complexity": 3,
+      "length": 16,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore._fetch_one": {
+      "complexity": 3,
+      "length": 8,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.comparison": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.coupling": {
+      "complexity": 6,
+      "length": 17,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.entries": {
+      "complexity": 2,
+      "length": 2,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.entry": {
+      "complexity": 1,
+      "length": 2,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.history": {
+      "complexity": 6,
+      "length": 18,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.hotspots": {
+      "complexity": 6,
+      "length": 23,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.ledger": {
+      "complexity": 6,
+      "length": 17,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.quality": {
+      "complexity": 4,
+      "length": 13,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.refresh": {
+      "complexity": 5,
+      "length": 16,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.revision_file": {
+      "complexity": 5,
+      "length": 10,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store.RepoStore.snapshot": {
+      "complexity": 5,
+      "length": 20,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store._mtime": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.store._snapshot_key": {
+      "complexity": 2,
+      "length": 12,
+      "module": "guardrail_hub.store",
+      "path": "src/guardrail_hub/store.py",
+      "paths": [
+        "src/guardrail_hub/store.py"
+      ]
+    },
+    "guardrail_hub.web._worst_level": {
+      "complexity": 9,
+      "length": 8,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app": {
+      "complexity": 2,
+      "length": 292,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app._comparison": {
+      "complexity": 4,
+      "length": 7,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app._entry_or_404": {
+      "complexity": 2,
+      "length": 5,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app._lifespan": {
+      "complexity": 3,
+      "length": 9,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app._snapshots": {
+      "complexity": 2,
+      "length": 4,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.api_compare_history": {
+      "complexity": 2,
+      "length": 13,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.api_history": {
+      "complexity": 4,
+      "length": 5,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.api_revision_changes": {
+      "complexity": 1,
+      "length": 3,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.compare": {
+      "complexity": 4,
+      "length": 17,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.doc_view": {
+      "complexity": 4,
+      "length": 19,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.drift_panel": {
+      "complexity": 2,
+      "length": 9,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.health": {
+      "complexity": 2,
+      "length": 19,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.ledger_panel": {
+      "complexity": 6,
+      "length": 26,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.overview": {
+      "complexity": 2,
+      "length": 15,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.refresh_all": {
+      "complexity": 2,
+      "length": 7,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.refresh_repo": {
+      "complexity": 1,
+      "length": 4,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.repo_detail": {
+      "complexity": 1,
+      "length": 26,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.repo_file": {
+      "complexity": 6,
+      "length": 26,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.revision_changes": {
+      "complexity": 1,
+      "length": 14,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.create_app.revision_file": {
+      "complexity": 2,
+      "length": 19,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    },
+    "guardrail_hub.web.serve": {
+      "complexity": 3,
+      "length": 13,
+      "module": "guardrail_hub.web",
+      "path": "src/guardrail_hub/web.py",
+      "paths": [
+        "src/guardrail_hub/web.py"
+      ]
+    }
   },
   "graph": {
     "component_cycles": [],
     "components": {
       "Budgets": {
-        "fan_in": 1,
+        "fan_in": 2,
         "fan_out": 1,
-        "instability": 0.5
+        "instability": 0.33
       },
       "Checkouts": {
         "fan_in": 1,
@@ -176,7 +1859,7 @@
         "instability": 0.33
       },
       "DocsRender": {
-        "fan_in": 1,
+        "fan_in": 2,
         "fan_out": 0,
         "instability": 0.0
       },
@@ -186,7 +1869,7 @@
         "instability": 0.5
       },
       "Errors": {
-        "fan_in": 9,
+        "fan_in": 10,
         "fan_out": 0,
         "instability": 0.0
       },
@@ -197,8 +1880,8 @@
       },
       "History": {
         "fan_in": 2,
-        "fan_out": 3,
-        "instability": 0.6
+        "fan_out": 5,
+        "instability": 0.71
       },
       "Installer": {
         "fan_in": 1,
@@ -206,9 +1889,9 @@
         "instability": 0.75
       },
       "Kit": {
-        "fan_in": 4,
+        "fan_in": 5,
         "fan_out": 1,
-        "instability": 0.2
+        "instability": 0.17
       },
       "Logging": {
         "fan_in": 1,
@@ -227,17 +1910,357 @@
       },
       "Store": {
         "fan_in": 1,
-        "fan_out": 7,
-        "instability": 0.88
+        "fan_out": 8,
+        "instability": 0.89
       },
       "Web": {
         "fan_in": 1,
-        "fan_out": 8,
-        "instability": 0.89
+        "fan_out": 9,
+        "instability": 0.9
       }
     },
-    "cross_component_edges": 42,
-    "cross_component_module_edges": 54,
+    "cross_component_edges": 46,
+    "cross_component_module_edges": 62,
+    "edges": [
+      {
+        "imports": [
+          "guardrail_hub.budgets -> guardrail_hub.models"
+        ],
+        "source": "Budgets",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.checkouts -> guardrail_hub.config"
+        ],
+        "source": "Checkouts",
+        "target": "Config"
+      },
+      {
+        "imports": [
+          "guardrail_hub.checkouts -> guardrail_hub.errors"
+        ],
+        "source": "Checkouts",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.checkouts -> guardrail_hub.gitio"
+        ],
+        "source": "Checkouts",
+        "target": "Gitio"
+      },
+      {
+        "imports": [
+          "guardrail_hub.checkouts -> guardrail_hub.models"
+        ],
+        "source": "Checkouts",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.config"
+        ],
+        "source": "Cli",
+        "target": "Config"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.drift"
+        ],
+        "source": "Cli",
+        "target": "Drift"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.errors"
+        ],
+        "source": "Cli",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.installer"
+        ],
+        "source": "Cli",
+        "target": "Installer"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.kit"
+        ],
+        "source": "Cli",
+        "target": "Kit"
+      },
+      {
+        "imports": [
+          "guardrail_hub.cli -> guardrail_hub.web"
+        ],
+        "source": "Cli",
+        "target": "Web"
+      },
+      {
+        "imports": [
+          "guardrail_hub.config -> guardrail_hub.errors"
+        ],
+        "source": "Config",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.config -> guardrail_hub.models"
+        ],
+        "source": "Config",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.drift -> guardrail_hub.kit"
+        ],
+        "source": "Drift",
+        "target": "Kit"
+      },
+      {
+        "imports": [
+          "guardrail_hub.drift -> guardrail_hub.models"
+        ],
+        "source": "Drift",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.gitio -> guardrail_hub.errors"
+        ],
+        "source": "Gitio",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.review -> guardrail_hub.budgets"
+        ],
+        "source": "History",
+        "target": "Budgets"
+      },
+      {
+        "imports": [
+          "guardrail_hub.budget_ledger -> guardrail_hub.errors",
+          "guardrail_hub.history -> guardrail_hub.errors",
+          "guardrail_hub.review -> guardrail_hub.errors"
+        ],
+        "source": "History",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.budget_ledger -> guardrail_hub.gitio",
+          "guardrail_hub.coupling -> guardrail_hub.gitio",
+          "guardrail_hub.history -> guardrail_hub.gitio",
+          "guardrail_hub.hotspots -> guardrail_hub.gitio",
+          "guardrail_hub.review -> guardrail_hub.gitio"
+        ],
+        "source": "History",
+        "target": "Gitio"
+      },
+      {
+        "imports": [
+          "guardrail_hub.review -> guardrail_hub.kit"
+        ],
+        "source": "History",
+        "target": "Kit"
+      },
+      {
+        "imports": [
+          "guardrail_hub.archmap -> guardrail_hub.models",
+          "guardrail_hub.budget_ledger -> guardrail_hub.models",
+          "guardrail_hub.coupling -> guardrail_hub.models",
+          "guardrail_hub.history -> guardrail_hub.models",
+          "guardrail_hub.hotspots -> guardrail_hub.models",
+          "guardrail_hub.review -> guardrail_hub.models"
+        ],
+        "source": "History",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.installer -> guardrail_hub.errors"
+        ],
+        "source": "Installer",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.installer -> guardrail_hub.gitio"
+        ],
+        "source": "Installer",
+        "target": "Gitio"
+      },
+      {
+        "imports": [
+          "guardrail_hub.installer -> guardrail_hub.kit"
+        ],
+        "source": "Installer",
+        "target": "Kit"
+      },
+      {
+        "imports": [
+          "guardrail_hub.kit -> guardrail_hub.errors"
+        ],
+        "source": "Kit",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.repo_scan -> guardrail_hub.budgets"
+        ],
+        "source": "RepoScan",
+        "target": "Budgets"
+      },
+      {
+        "imports": [
+          "guardrail_hub.repo_scan -> guardrail_hub.errors"
+        ],
+        "source": "RepoScan",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.repo_scan -> guardrail_hub.gitio"
+        ],
+        "source": "RepoScan",
+        "target": "Gitio"
+      },
+      {
+        "imports": [
+          "guardrail_hub.repo_scan -> guardrail_hub.models"
+        ],
+        "source": "RepoScan",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.checkouts"
+        ],
+        "source": "Store",
+        "target": "Checkouts"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.config"
+        ],
+        "source": "Store",
+        "target": "Config"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.docs_render"
+        ],
+        "source": "Store",
+        "target": "DocsRender"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.errors"
+        ],
+        "source": "Store",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.gitio"
+        ],
+        "source": "Store",
+        "target": "Gitio"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.budget_ledger",
+          "guardrail_hub.store -> guardrail_hub.coupling",
+          "guardrail_hub.store -> guardrail_hub.history",
+          "guardrail_hub.store -> guardrail_hub.hotspots",
+          "guardrail_hub.store -> guardrail_hub.review"
+        ],
+        "source": "Store",
+        "target": "History"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.models"
+        ],
+        "source": "Store",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.store -> guardrail_hub.repo_scan"
+        ],
+        "source": "Store",
+        "target": "RepoScan"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.config"
+        ],
+        "source": "Web",
+        "target": "Config"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.docs_render"
+        ],
+        "source": "Web",
+        "target": "DocsRender"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.drift"
+        ],
+        "source": "Web",
+        "target": "Drift"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.errors"
+        ],
+        "source": "Web",
+        "target": "Errors"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.budget_ledger",
+          "guardrail_hub.web -> guardrail_hub.history"
+        ],
+        "source": "Web",
+        "target": "History"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.kit"
+        ],
+        "source": "Web",
+        "target": "Kit"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.logging_setup"
+        ],
+        "source": "Web",
+        "target": "Logging"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.models"
+        ],
+        "source": "Web",
+        "target": "Models"
+      },
+      {
+        "imports": [
+          "guardrail_hub.web -> guardrail_hub.store"
+        ],
+        "source": "Web",
+        "target": "Store"
+      }
+    ],
     "longest_component_chain": 5,
     "module_cycle_count": 0,
     "module_cycles": [],
@@ -245,148 +2268,306 @@
       "Cli -> Config",
       "Cli -> Errors",
       "Web -> Config",
+      "Web -> Errors",
       "Web -> Logging",
       "Web -> Models"
     ],
-    "tier_skipping_edges": 5
+    "tier_skipping_edges": 6
   },
   "mcp": {
     "tools": 0,
     "tools_without_docstrings": 0
   },
+  "measurement": {
+    "analyzer_version": "1.6.0",
+    "capabilities": {
+      "complexity": "measured",
+      "domain": "measured",
+      "mcp": "unsupported",
+      "seams": "measured",
+      "structure": "measured"
+    },
+    "config_hash": "ff48a4766eca2c3a32f4217803500fd7c43acccddef8f5b6b2e876e8c71d9f10",
+    "definitions": {
+      "complexity": 1,
+      "structure": 1,
+      "test_volume": 2
+    },
+    "language": "python",
+    "scope": {
+      "domain": {
+        "exclude_modules": [
+          "guardrail_hub.config",
+          "guardrail_hub.errors",
+          "guardrail_hub.kit",
+          "guardrail_hub.archmap",
+          "guardrail_hub.review"
+        ],
+        "include_modules": [
+          "guardrail_hub.models"
+        ]
+      },
+      "excluded": [
+        "third-party code",
+        "files outside the source root",
+        "templates and browser code",
+        "kit tooling"
+      ],
+      "source_root": "src/guardrail_hub",
+      "source_suffixes": [
+        ".py"
+      ],
+      "test_exclusions": [
+        "tests/guardrail",
+        "tests/test_metrics_diff.py",
+        "tests/test_metrics_history.py",
+        "tests/test_quality.py"
+      ]
+    },
+    "source_hash": "7c5d9a3ab776fbad17fe6da9712a12c4bfdeb329160208a46ec37d524e820089",
+    "tools": {
+      "grimp": "3.15",
+      "networkx": "3.6.1"
+    }
+  },
   "modules": {
     "guardrail_hub": {
+      "component": null,
       "functions": 0,
       "lines": 3,
       "max_complexity": 0,
+      "path": "src/guardrail_hub/__init__.py",
       "sloc": 2
     },
     "guardrail_hub.__main__": {
+      "component": "Cli",
       "functions": 0,
       "lines": 6,
       "max_complexity": 0,
+      "path": "src/guardrail_hub/__main__.py",
       "sloc": 4
     },
     "guardrail_hub.archmap": {
+      "component": "History",
       "functions": 3,
       "lines": 84,
       "max_complexity": 11,
+      "path": "src/guardrail_hub/archmap.py",
       "sloc": 71
     },
     "guardrail_hub.budget_ledger": {
+      "component": "History",
       "functions": 4,
       "lines": 73,
       "max_complexity": 7,
+      "path": "src/guardrail_hub/budget_ledger.py",
       "sloc": 59
     },
     "guardrail_hub.budgets": {
+      "component": "Budgets",
       "functions": 3,
-      "lines": 77,
-      "max_complexity": 7,
-      "sloc": 65
+      "lines": 85,
+      "max_complexity": 8,
+      "path": "src/guardrail_hub/budgets.py",
+      "sloc": 73
     },
     "guardrail_hub.checkouts": {
+      "component": "Checkouts",
       "functions": 4,
       "lines": 93,
       "max_complexity": 7,
+      "path": "src/guardrail_hub/checkouts.py",
       "sloc": 77
     },
     "guardrail_hub.cli": {
+      "component": "Cli",
       "functions": 6,
       "lines": 129,
       "max_complexity": 19,
+      "path": "src/guardrail_hub/cli.py",
       "sloc": 102
     },
     "guardrail_hub.config": {
+      "component": "Config",
       "functions": 16,
       "lines": 276,
       "max_complexity": 8,
+      "path": "src/guardrail_hub/config.py",
       "sloc": 217
     },
     "guardrail_hub.coupling": {
+      "component": "History",
       "functions": 1,
       "lines": 76,
       "max_complexity": 15,
+      "path": "src/guardrail_hub/coupling.py",
       "sloc": 66
     },
     "guardrail_hub.docs_render": {
+      "component": "DocsRender",
       "functions": 8,
       "lines": 95,
       "max_complexity": 6,
+      "path": "src/guardrail_hub/docs_render.py",
       "sloc": 72
     },
     "guardrail_hub.drift": {
+      "component": "Drift",
       "functions": 11,
       "lines": 215,
       "max_complexity": 12,
+      "path": "src/guardrail_hub/drift.py",
       "sloc": 183
     },
     "guardrail_hub.errors": {
+      "component": "Errors",
       "functions": 0,
       "lines": 23,
       "max_complexity": 0,
+      "path": "src/guardrail_hub/errors.py",
       "sloc": 13
     },
     "guardrail_hub.gitio": {
-      "functions": 15,
-      "lines": 201,
+      "component": "Gitio",
+      "functions": 19,
+      "lines": 222,
       "max_complexity": 8,
-      "sloc": 160
+      "path": "src/guardrail_hub/gitio.py",
+      "sloc": 173
     },
     "guardrail_hub.history": {
-      "functions": 4,
-      "lines": 89,
-      "max_complexity": 7,
-      "sloc": 74
+      "component": "History",
+      "functions": 6,
+      "lines": 147,
+      "max_complexity": 16,
+      "path": "src/guardrail_hub/history.py",
+      "sloc": 128
     },
     "guardrail_hub.hotspots": {
+      "component": "History",
       "functions": 6,
-      "lines": 144,
+      "lines": 147,
       "max_complexity": 6,
-      "sloc": 117
+      "path": "src/guardrail_hub/hotspots.py",
+      "sloc": 120
     },
     "guardrail_hub.installer": {
+      "component": "Installer",
       "functions": 11,
       "lines": 372,
       "max_complexity": 16,
+      "path": "src/guardrail_hub/installer.py",
       "sloc": 309
     },
     "guardrail_hub.kit": {
+      "component": "Kit",
       "functions": 5,
       "lines": 78,
       "max_complexity": 10,
+      "path": "src/guardrail_hub/kit.py",
       "sloc": 63
     },
     "guardrail_hub.logging_setup": {
+      "component": "Logging",
       "functions": 1,
       "lines": 12,
       "max_complexity": 1,
+      "path": "src/guardrail_hub/logging_setup.py",
       "sloc": 7
     },
     "guardrail_hub.models": {
+      "component": "Models",
       "functions": 4,
-      "lines": 187,
+      "lines": 195,
       "max_complexity": 4,
-      "sloc": 143
+      "path": "src/guardrail_hub/models.py",
+      "sloc": 151
     },
     "guardrail_hub.repo_scan": {
-      "functions": 7,
-      "lines": 147,
+      "component": "RepoScan",
+      "functions": 8,
+      "lines": 193,
+      "max_complexity": 11,
+      "path": "src/guardrail_hub/repo_scan.py",
+      "sloc": 171
+    },
+    "guardrail_hub.review": {
+      "component": "History",
+      "functions": 5,
+      "lines": 101,
       "max_complexity": 8,
-      "sloc": 127
+      "path": "src/guardrail_hub/review.py",
+      "sloc": 86
     },
     "guardrail_hub.store": {
-      "functions": 12,
-      "lines": 212,
+      "component": "Store",
+      "functions": 15,
+      "lines": 254,
       "max_complexity": 6,
-      "sloc": 183
+      "path": "src/guardrail_hub/store.py",
+      "sloc": 222
     },
     "guardrail_hub.web": {
-      "functions": 18,
-      "lines": 332,
-      "max_complexity": 6,
-      "sloc": 291
+      "component": "Web",
+      "functions": 22,
+      "lines": 395,
+      "max_complexity": 9,
+      "path": "src/guardrail_hub/web.py",
+      "sloc": 350
     }
+  },
+  "quality": {
+    "branch_coverage": {
+      "status": "missing"
+    },
+    "mutation": {
+      "status": "missing"
+    },
+    "outcomes": []
+  },
+  "review": {
+    "actuals": {
+      "component_cycles": 0,
+      "cross_component_edges": 46,
+      "cross_module_private_refs": 0,
+      "functions_over_10": 8,
+      "functions_over_75_lines": 1,
+      "max_function_complexity": 19,
+      "max_module_lines": 395,
+      "module_cycles": 0,
+      "modules_over_800_lines": 0,
+      "tests_private_imports": 0,
+      "tier_skipping_edges": 6
+    },
+    "budgets": {
+      "component_cycles": 0,
+      "cross_component_edges": 42,
+      "cross_module_private_refs": 0,
+      "functions_over_10": 6,
+      "functions_over_75_lines": 1,
+      "max_function_complexity": 19,
+      "max_module_lines": 800,
+      "module_cycles": 0,
+      "modules_over_800_lines": 0,
+      "tests_private_imports": 0,
+      "tier_skipping_edges": 5
+    },
+    "enforce_new": false,
+    "enforce_worsened": false,
+    "exceptions": [],
+    "limits": {
+      "function_complexity": 10,
+      "function_length": 75,
+      "module_lines": 800
+    },
+    "policies": {
+      "component_cycles": "invariant",
+      "cross_module_private_refs": "invariant",
+      "module_cycles": "invariant",
+      "tests_private_imports": "invariant",
+      "tier_skipping_edges": "context"
+    },
+    "unknown_settings": []
   },
   "schema": 1,
   "seams": {
@@ -401,11 +2582,11 @@
         "classes": 0,
         "functions": 3,
         "largest_module": "guardrail_hub.budgets",
-        "largest_module_lines": 77,
-        "lines": 77,
+        "largest_module_lines": 85,
+        "lines": 85,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 65
+        "sloc": 73
       },
       "Checkouts": {
         "classes": 0,
@@ -469,23 +2650,23 @@
       },
       "Gitio": {
         "classes": 0,
-        "functions": 15,
+        "functions": 19,
         "largest_module": "guardrail_hub.gitio",
-        "largest_module_lines": 201,
-        "lines": 201,
+        "largest_module_lines": 222,
+        "lines": 222,
         "modules": 1,
-        "public_symbols": 13,
-        "sloc": 160
+        "public_symbols": 17,
+        "sloc": 173
       },
       "History": {
         "classes": 1,
-        "functions": 18,
-        "largest_module": "guardrail_hub.hotspots",
-        "largest_module_lines": 144,
-        "lines": 466,
-        "modules": 5,
-        "public_symbols": 12,
-        "sloc": 387
+        "functions": 25,
+        "largest_module": "guardrail_hub.history",
+        "largest_module_lines": 147,
+        "lines": 628,
+        "modules": 6,
+        "public_symbols": 19,
+        "sloc": 530
       },
       "Installer": {
         "classes": 0,
@@ -521,53 +2702,53 @@
         "classes": 11,
         "functions": 4,
         "largest_module": "guardrail_hub.models",
-        "largest_module_lines": 187,
-        "lines": 187,
+        "largest_module_lines": 195,
+        "lines": 195,
         "modules": 1,
         "public_symbols": 11,
-        "sloc": 143
+        "sloc": 151
       },
       "RepoScan": {
         "classes": 0,
-        "functions": 7,
+        "functions": 8,
         "largest_module": "guardrail_hub.repo_scan",
-        "largest_module_lines": 147,
-        "lines": 147,
+        "largest_module_lines": 193,
+        "lines": 193,
         "modules": 1,
-        "public_symbols": 2,
-        "sloc": 127
+        "public_symbols": 3,
+        "sloc": 171
       },
       "Store": {
         "classes": 1,
-        "functions": 12,
+        "functions": 15,
         "largest_module": "guardrail_hub.store",
-        "largest_module_lines": 212,
-        "lines": 212,
+        "largest_module_lines": 254,
+        "lines": 254,
         "modules": 1,
         "public_symbols": 1,
-        "sloc": 183
+        "sloc": 222
       },
       "Web": {
         "classes": 0,
-        "functions": 18,
+        "functions": 22,
         "largest_module": "guardrail_hub.web",
-        "largest_module_lines": 332,
-        "lines": 332,
+        "largest_module_lines": 395,
+        "lines": 395,
         "modules": 1,
         "public_symbols": 2,
-        "sloc": 291
+        "sloc": 350
       }
     },
-    "max_module": "guardrail_hub.installer",
-    "max_module_lines": 372,
+    "max_module": "guardrail_hub.web",
+    "max_module_lines": 395,
     "modules_over_800": [],
-    "total_lines": 2924,
-    "total_modules": 22,
-    "total_sloc": 2405
+    "total_lines": 3274,
+    "total_modules": 23,
+    "total_sloc": 2719
   },
   "tests": {
-    "ratio": 1.99,
-    "src_lines": 2924,
-    "test_lines": 5818
+    "ratio": 1.01,
+    "src_lines": 3274,
+    "test_lines": 3323
   }
 }

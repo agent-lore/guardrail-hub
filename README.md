@@ -58,3 +58,20 @@ make diagrams    # regenerate docs/generated/ (the hub dogfoods its own kit)
 ```
 
 See `AGENTS.md` for the full development guide.
+
+## Quality review
+
+Kit 1.6 records measurement provenance and all function identities. The dashboard
+preserves individual commits, distinguishes missing/unsupported/stale data, labels
+hotspot calculation methods, and compares two revisions with dependency, domain,
+function, policy, and budget changes. Historical source links open the selected
+revision.
+
+Policies distinguish invariants from review thresholds. Bounded exceptions record
+why cohesive code should remain together; optional changed-code gates require a
+comparable baseline. Coverage, mutation results, and intervention outcomes can be
+recorded with explicit scope and evidence. Test/source ratio is only a volume
+statistic. See [the quality guide](docs/quality-guide.md) for the configuration,
+evidence format, and upgrade sequence. Generated artifacts remain in Git.
+
+Development checks require Python 3.12 and Node.js 22 (chart regression tests).

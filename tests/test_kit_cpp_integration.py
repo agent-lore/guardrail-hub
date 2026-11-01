@@ -127,7 +127,7 @@ def test_metrics_merge_pairs_and_language_sections(cpp_project: Path) -> None:
     assert metrics["complexity"]["total_functions"] == 2
     assert metrics["complexity"]["functions_over_10"] == 0
     assert metrics["complexity"]["components"]["Core"]["max_function"] == (
-        "agent.core.engine.Engine::run"
+        "agent.core.engine.Engine::run()"
     )
 
 

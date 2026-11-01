@@ -225,12 +225,12 @@ _CI_SNIPPET = """\
             git --no-pager diff -- docs/generated
             exit 1
           fi
-      - name: Architecture metrics delta vs base (informational)
+      - name: Architecture quality review vs base
         if: github.event_name == 'pull_request'
         run: |
-          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
           git show "FETCH_HEAD:docs/generated/metrics.json" > /tmp/base-metrics.json 2>/dev/null || echo '{}' > /tmp/base-metrics.json
-          uv run python scripts/metrics_diff.py /tmp/base-metrics.json docs/generated/metrics.json --markdown >> "$GITHUB_STEP_SUMMARY"
+          uv run python scripts/metrics_diff.py /tmp/base-metrics.json docs/generated/metrics.json --markdown --check >> "$GITHUB_STEP_SUMMARY"
 """
 
 _CHECKLIST = """\

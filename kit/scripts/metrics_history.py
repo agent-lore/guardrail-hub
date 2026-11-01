@@ -40,7 +40,8 @@ DEFAULT_KEYS = [
     "complexity.max",
     "seams.cross_module_private_refs",
     "seams.tests_private_imports",
-    "tests.ratio",
+    "quality.branch_coverage.value",
+    "quality.mutation.value",
 ]
 
 
@@ -49,8 +50,8 @@ def _git(*args: str) -> str:
 
 
 def iter_snapshots() -> list[tuple[str, str, dict]]:
-    """(short sha, date, metrics dict) per first-parent commit touching the snapshot."""
-    log = _git("log", "--reverse", "--first-parent", "--format=%h %cs", "--", SNAPSHOT).splitlines()
+    """(full sha, timestamp, metrics dict) per first-parent commit touching the snapshot."""
+    log = _git("log", "--reverse", "--first-parent", "--format=%H %cI", "--", SNAPSHOT).splitlines()
     snapshots: list[tuple[str, str, dict]] = []
     for line in log:
         sha, date = line.split(maxsplit=1)
@@ -59,10 +60,10 @@ def iter_snapshots() -> list[tuple[str, str, dict]]:
             # which breaks when this instance lives in a monorepo subdirectory).
             metrics = json.loads(_git("show", f"{sha}:./{SNAPSHOT}"))
         except subprocess.CalledProcessError:
-            continue  # commit removed the file (or predates it)
+            metrics = {}  # retain the commit as a missing-data gap
         except json.JSONDecodeError:
-            continue  # snapshot at this commit is malformed; skip, don't crash the walk
-        snapshots.append((sha, date, metrics))
+            metrics = {}  # retain the commit as an invalid-data gap
+        snapshots.append((sha, date, metrics if isinstance(metrics, dict) else {}))
     return snapshots
 
 
@@ -75,6 +76,9 @@ def extract(metrics: dict, dotted_key: str) -> Any:
     (so ``modules.pkg.mod.sloc`` finds the ``pkg.mod`` entry even though the
     package module ``pkg`` is a sibling key).
     """
+    capabilities = metrics.get("measurement", {}).get("capabilities", {})
+    if capabilities.get(dotted_key, capabilities.get(dotted_key.split(".")[0])) == "unsupported":
+        return None
     value: Any = metrics
     parts = dotted_key.split(".")
     i = 0
@@ -95,7 +99,7 @@ def extract(metrics: dict, dotted_key: str) -> Any:
 
 
 def emit_csv(snapshots: list[tuple[str, str, dict]], keys: list[str]) -> str:
-    lines = ["sha,date," + ",".join(keys)]
+    lines = ["sha,timestamp," + ",".join(keys)]
     lines.extend(
         f"{sha},{date},"
         + ",".join(str(extract(m, k) if extract(m, k) is not None else "") for k in keys)
@@ -109,7 +113,12 @@ def emit_mermaid(snapshots: list[tuple[str, str, dict]], keys: list[str]) -> str
     labels = ", ".join(f'"{sha}"' for sha, _, _ in snapshots)
     for key in keys:
         values = [extract(m, key) for _, _, m in snapshots]
-        points = ", ".join("0" if v is None else str(v) for v in values)
+        if any(v is None for v in values):
+            blocks.append(
+                f"## {key}\n\nChart omitted: missing or unsupported measurements; see CSV for gaps."
+            )
+            continue
+        points = ", ".join(str(v) for v in values)
         blocks.append(
             "\n".join(
                 [

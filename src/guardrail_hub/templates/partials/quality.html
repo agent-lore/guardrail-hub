@@ -1,0 +1,35 @@
+{% if quality.get("error") %}<p class="banner banner-warning">{{ quality.error }}</p>{% endif %}
+<table class="data-table">
+  <thead><tr><th>Evidence</th><th>Status</th><th>Result</th><th>Scope / reference</th></tr></thead>
+  <tbody>
+  {% for key, label in [("branch_coverage", "Branch coverage"), ("mutation", "Mutation testing")] %}
+    {% set evidence = quality.get("quality", {}).get(key, {}) %}
+    <tr><td>{{ label }}</td><td>{{ evidence.get("status", "missing") }}</td>
+      <td>{{ evidence.get("value") if evidence.get("value") is not none else "—" }}{% if evidence.get("value") is not none %}%{% endif %}</td>
+      <td>{{ evidence.get("scope", "Not recorded") }} {{ evidence.get("reference", "") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">Coverage and mutation evidence apply only to their recorded scope. Test/source line counts describe volume, not test effectiveness.</p>
+{% if quality.get("violations") %}
+<table class="data-table">
+  <thead><tr><th>Target</th><th>Metric</th><th>Actual / threshold</th><th>Policy</th><th>Exception</th></tr></thead>
+  <tbody>{% for row in quality.violations %}
+    <tr><td><code>{{ row.target }}</code></td><td>{{ row.metric }}</td><td>{{ row.actual }} / {{ row.limit }}</td>
+      <td>{{ row.policy }}</td><td>{% if row.accepted %}Accepted through {{ row.exception_limit }}: {{ row.reason }} ({{ row.review }}){% elif row.reason %}Exception exceeded: {{ row.reason }} ({{ row.review }}){% else %}—{% endif %}</td></tr>
+  {% endfor %}</tbody>
+</table>
+{% endif %}
+{% if quality.get("suggestions") %}
+<ul>{% for suggestion in quality.suggestions %}<li>{{ suggestion }}</li>{% endfor %}</ul>
+{% endif %}
+{% set outcomes = quality.get("quality", {}).get("outcomes", []) %}
+{% if outcomes %}
+<h3>Interventions and observed outcomes</h3>
+<p class="muted">Recorded observations support review; they do not establish causation.</p>
+<table class="data-table">
+  <thead><tr><th>Intervention</th><th>Measure</th><th>Before → after</th><th>Observation windows</th><th>Evidence</th></tr></thead>
+  <tbody>{% for outcome in outcomes %}<tr><td>{{ outcome.intervention }}</td><td>{{ outcome.measure }}</td>
+    <td>{{ outcome.before }} → {{ outcome.after }}</td><td>{{ outcome.baseline }} → {{ outcome.followup }}</td><td>{{ outcome.reference }}</td></tr>{% endfor %}</tbody>
+</table>
+{% else %}<p class="muted">No outcome observations recorded yet. Record regressions, reverts, or components touched before and after an intervention in architecture.toml.</p>{% endif %}

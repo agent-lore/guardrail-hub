@@ -32,14 +32,19 @@ BUDGET_ACTUALS: dict[str, Callable[[Mapping[str, Any]], int]] = {
 
 def budget_actual(metrics: Mapping[str, Any], key: str) -> int | None:
     """Measured value for a budget key, or None when unknown/unreadable."""
+    if (
+        key in {"cross_module_private_refs", "tests_private_imports"}
+        and metrics.get("measurement", {}).get("capabilities", {}).get("seams") == "unsupported"
+    ):
+        return None
     extractor = BUDGET_ACTUALS.get(key)
     if extractor is None:
         return None
     try:
         value = extractor(metrics)
-    except (KeyError, TypeError):
+    except (KeyError, TypeError, ValueError):
         return None
-    return int(value)
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
 def _level(budget: int, actual: int | None) -> BudgetLevel:
@@ -47,7 +52,7 @@ def _level(budget: int, actual: int | None) -> BudgetLevel:
         return "unknown"
     if actual > budget:
         return "breach"
-    if actual == budget:
+    if actual == budget and budget != 0:
         return "tight"
     return "ok"
 
@@ -72,6 +77,9 @@ def budget_statuses(
                 actual=actual,
                 headroom=None if actual is None else raw - actual,
                 level=_level(raw, actual),
+                policy=architecture.get("policies", {}).get(
+                    key, "invariant" if key in {"component_cycles", "module_cycles"} else "review"
+                ),
             )
         )
     return tuple(statuses)

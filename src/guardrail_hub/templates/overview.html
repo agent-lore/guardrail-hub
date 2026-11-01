@@ -21,7 +21,7 @@
         <div><dt>SLOC</dt><dd>{{ extract(snapshot.metrics, "size.total_sloc") }}</dd></div>
         <div><dt>Edges</dt><dd>{{ extract(snapshot.metrics, "graph.cross_component_edges") }}</dd></div>
         <div><dt>Components</dt><dd>{{ snapshot.components | length }}</dd></div>
-        <div><dt>Test ratio</dt><dd>{{ "%.2f" | format(extract(snapshot.metrics, "tests.ratio")) }}</dd></div>
+        <div><dt>Measurement</dt><dd>{{ snapshot.measurement_status }}</dd></div>
       </dl>
       <div class="repo-card-foot">
         <span class="traffic traffic-{{ worst_level(snapshot) }}">budgets {{ worst_level(snapshot) }}</span>

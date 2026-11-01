@@ -33,8 +33,7 @@
       </tbody>
     </table>
   </div>
-  <p class="muted">Absolute numbers — repos differ in size; the trend chart below is where
-    cross-repo comparison is honest.</p>
+  <p class="muted">Repos differ in size, language, measurement rules, and evidence scope. These values are context, not a quality ranking.</p>
 </section>
 
 <section class="panel">
@@ -48,6 +47,7 @@
     </select>
     <noscript><button type="submit">Plot</button></noscript>
   </form>
+  <p class="muted">One point per commit, ordered by timestamp and identity; spacing is ordinal. Missing values are not interpolated. Compare like-for-like measurement scopes.</p>
   <div id="compare-chart" class="chart-panel"
        data-compare-url="/compare/history.json?key={{ selected_key }}"></div>
 </section>

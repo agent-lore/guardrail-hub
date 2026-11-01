@@ -24,6 +24,6 @@ Access to the canonical kit: files, manifest roster, version.
 ## Dependencies
 
 - Depends on: [Errors](Errors.md)
-- Used by: [Cli](Cli.md), [Drift](Drift.md), [Installer](Installer.md), [Web](Web.md)
+- Used by: [Cli](Cli.md), [Drift](Drift.md), [History](History.md), [Installer](Installer.md), [Web](Web.md)
 
 [← all generated docs](../README.md)

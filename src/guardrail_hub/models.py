@@ -65,6 +65,9 @@ class MetricPoint:
     sha: str
     date: datetime.date
     metrics: Mapping[str, Any]
+    timestamp: str = ""
+    status: str = "measured"
+    error: str = ""
 
 
 @dataclass(frozen=True)
@@ -76,6 +79,7 @@ class BudgetStatus:
     actual: int | None
     headroom: int | None
     level: BudgetLevel
+    policy: str = "review"
 
 
 @dataclass(frozen=True)
@@ -105,6 +109,9 @@ class RepoSnapshot:
     budgets: tuple[BudgetStatus, ...] = ()
     components: tuple[ComponentRow, ...] = ()
     docs: tuple[str, ...] = ()
+    measurement_status: str = "legacy"
+    measurement_note: str = ""
+    architecture: Mapping[str, Any] = field(default_factory=dict)
 
     @property
     def has_metrics(self) -> bool:
@@ -127,6 +134,7 @@ class ModuleHotspot:
     sloc: int
     max_complexity: int
     score: float
+    method: str = "churn density x module complexity"
 
 
 @dataclass(frozen=True)
