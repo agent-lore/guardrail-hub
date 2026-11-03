@@ -79,4 +79,9 @@ recorded with explicit scope and evidence. Test/source ratio is only a volume
 statistic. See [the quality guide](docs/quality-guide.md) for the configuration,
 evidence format, and upgrade sequence. Generated artifacts remain in Git.
 
+The hub runs a [changed-code enforcement pilot](docs/enforcement-pilot.md): new
+and worsened entity findings block PRs unless a bounded exception accepts them.
+Existing findings remain visible. The pilot documents the baseline decisions,
+local check command, and criteria for evaluating usefulness before fleet rollout.
+
 Development checks require Python 3.12 and Node.js 22 (chart regression tests).
